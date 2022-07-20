@@ -21,6 +21,7 @@ def convert_numpy_array_to_bytes(array: np.array) -> str:
 
 
 def convert_img_to_bytes(img_path):
+    # TODO: convert img to bytes
     array = convert_img_to_numpy_array(img_path)
     return convert_numpy_array_to_bytes(array)
 
