@@ -8,6 +8,8 @@ import io
 def convert_img_to_numpy_array(img_path):
     # TODO: load image from directory and convert to numpy array
     img = Image.open(img_path)
+    img.convert("RGB").save(img_path, "JPEG")
+    img = Image.open(img_path)
     array = np.asarray(img)
     return array
 
