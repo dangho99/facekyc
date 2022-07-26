@@ -14,3 +14,4 @@ tensorflow==2.8.0
 tensorflow-serving-api==2.8.0
 tensorflow-addons==0.16.1
 keras==2.8.0
+tqdm==4.46.0
