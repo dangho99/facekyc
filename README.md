@@ -13,5 +13,5 @@ python3 gateway.py
 python3 train.py
 
 # predictor
-python3 test.py
+python3 predict.py
 ```
