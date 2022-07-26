@@ -31,6 +31,7 @@ class Trainer:
         print("Re-training ok.")
         return
 
+
 if __name__ == '__main__':
     trainer = Trainer()
-    server.run_train(trainer, interval=5)
+    server.run_train(trainer, interval=60)

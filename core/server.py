@@ -34,24 +34,19 @@ def run(model):
         try:
             responses, buckets = model.get_nearest_neighbors(data)
         except Exception as e:
-            logger.error(e)
+            print(str(e))
             return jsonify({
-                'k-nearestneighbors': [],
+                'k-nearest-neighbors': [],
                 'summary': []
             })
         return jsonify({
-            'k-nearestneighbors': responses,
+            'k-nearest-neighbors': responses,
             'summary': buckets
         })
-
-    try:
-        print('Running Predictor API.')
-        app.run(host='0.0.0.0', port=9011)
-    except KeyboardInterrupt:
-        server.stop(0)
+    app.run(host='0.0.0.0', port=9003)
 
 
-def run_train(trainer, interval=5*60):
+def run_train(trainer, interval=60):
     app = Flask(__name__)
     app.config['DEBUG'] = True
     queue_task = Queue()
@@ -110,4 +105,4 @@ def run_train(trainer, interval=5*60):
                 break
 
     Thread(target=auto_train).start()
-    app.run(host='0.0.0.0', port=9010)
+    app.run(host='0.0.0.0', port=9002)

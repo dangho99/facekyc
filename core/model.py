@@ -61,21 +61,20 @@ class NeighborSearch:
     def partial_fit(self, data):
         self.fit(data)
 
-    def predict(self, data):
-        features = [d['features'] for d in data]
+    def predict(self, features):
         if len(features) == 0:
             return []
         features = np.array(features, dtype=np.float32)
         features = features / np.linalg.norm(features, axis=1, keepdims=True)
         ranges, distances, indexes = self.indexing.range_search(features, self.matched_score)
         result = []
-        for i in range(len(data)):
+        for i in range(len(features)):
             ds = distances[ranges[i]:ranges[i+1]]
             ids = indexes[ranges[i]:ranges[i+1]]
             if len(ds) > 1:
                 ds, ids = zip(*sorted(zip(ds, ids), key=lambda x: x[0], reverse=True))
-            if (not len(ds)):
-                result.append({"userid": "", "score": 0.})
+            if not len(ds):
+                result.append({"userid": "unknown", "score": 0.})
                 continue
             stats = defaultdict(list)
             for dist, idx in zip(ds, ids):
@@ -83,7 +82,7 @@ class NeighborSearch:
             for k, v in stats.items():
                 stats[k] = float(np.sum(v) / (len(v) + 1e-9))
             userid, score = max(stats.items(), key=lambda x: x[1])
-            result.append({"userid": userid, "score": score})
+            result.append({"userid": userid, "score": round(score, 2)})
         return result
 
     def save(self, path):

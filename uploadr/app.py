@@ -8,12 +8,13 @@ import requests
 app = Flask(__name__)
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+@app.route("/sign-up")
+def sign_up():
+    return render_template("sign_up.html")
 
-@app.route("/upload", methods=["POST"])
-def upload():
+
+@app.route("/upload-sign-up", methods=["POST"])
+def upload_sign_up():
     """Handle the upload of a file."""
     form = request.form
 
@@ -49,11 +50,56 @@ def upload():
     if is_ajax:
         return ajax_response(True, upload_key)
     else:
-        return redirect(url_for("upload_complete", uuid=upload_key))
+        return redirect(url_for("upload_sign_up_complete", uuid=upload_key))
+
+
+@app.route("/sign-in")
+def sign_in():
+    return render_template("sign_in.html")
+
+
+@app.route("/upload-sign-in", methods=["POST"])
+def upload_sign_in():
+    """Handle the upload of a file."""
+    form = request.form
+
+    print("=== Form Data ===")
+
+    # Target folder for these uploads.
+    target = "uploadr/static/test"
+
+    images = []
+    for upload in request.files.getlist("file"):
+        filename = upload.filename.rsplit("/")[0]
+        destination = "/".join([target, filename])
+        print("Accept incoming file:", filename)
+        print("Save it to:", destination)
+        upload.save(destination)
+
+        images.append(dataio.convert_img_to_bytes(destination))
+
+    data = {
+        "images": images,
+    }
+
+    # POST request
+    headers = {"Content-Type": "application/json"}
+    url = "http://localhost:9001/api/user/verify"
+    r = requests.post(url=url, data=json.dumps(data), headers=headers)
+
+    response = make_response(
+        jsonify(
+            json.loads(r.text)
+        ),
+        r.status_code,
+    )
+    response.headers["Content-Type"] = "application/json"
+
+    return response
 
 
 @app.route("/files/<uuid>")
-def upload_complete(uuid):
+def upload_sign_up_complete(uuid):
     """The location we send them to at the end of the upload."""
 
     # Get their files.
@@ -81,7 +127,7 @@ def upload_complete(uuid):
 
     # POST request
     headers = {"Content-Type": "application/json"}
-    url = "http://localhost:9001/api/user/detection"
+    url = "http://localhost:9001/api/user/register"
     r = requests.post(url=url, data=json.dumps(data), headers=headers)
 
     response = make_response(
@@ -93,11 +139,6 @@ def upload_complete(uuid):
     response.headers["Content-Type"] = "application/json"
 
     return response
-
-    # return render_template("files.html",
-    #     uuid=uuid,
-    #     files=files,
-    # )
 
 
 def ajax_response(status, msg):

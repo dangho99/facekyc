@@ -522,7 +522,7 @@ def InceptionResNetV2():
 #     model.load_weights("facenet_keras_weights.h5")
 #     tf.keras.models.save_model(
 #         model,
-#         "1",
+#         "serving/face_recognition/1",
 #         overwrite=True,
 #         include_optimizer=True,
 #         save_format=None,
