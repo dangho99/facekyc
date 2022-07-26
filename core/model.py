@@ -74,7 +74,7 @@ class NeighborSearch:
             if len(ds) > 1:
                 ds, ids = zip(*sorted(zip(ds, ids), key=lambda x: x[0], reverse=True))
             if not len(ds):
-                result.append({"userid": "unknown", "score": 0.})
+                result.append({"userid": "", "score": 0.})
                 continue
             stats = defaultdict(list)
             for dist, idx in zip(ds, ids):
