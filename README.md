@@ -3,6 +3,9 @@
 Run demo:
 
 ```sh
+# deploy redis broker
+bash broker/redis.sh
+
 # sign up and sign in
 python3 upload.py
 
