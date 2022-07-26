@@ -79,5 +79,9 @@ Only upload <strong>image type files</strong> in the form below.<p>
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-2.1.1.min.js') }}"></script>
 
+{% for response in responses %}
+    <img src="data:image/jpg;base64,{{ response }}">
+{% endfor %}
+
 </body>
 </html>

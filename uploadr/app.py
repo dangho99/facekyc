@@ -87,15 +87,18 @@ def upload_sign_in():
     url = "http://localhost:9001/api/user/verify"
     r = requests.post(url=url, data=json.dumps(data), headers=headers)
 
-    response = make_response(
-        jsonify(
-            json.loads(r.text)
-        ),
-        r.status_code,
-    )
-    response.headers["Content-Type"] = "application/json"
+    # response = make_response(
+    #     jsonify(
+    #         json.loads(r.text)
+    #     ),
+    #     r.status_code,
+    # )
+    # response.headers["Content-Type"] = "application/json"
 
-    return response
+    responses = json.loads(r.text)["responses"]
+    responses = [json.loads(response) for response in responses]
+
+    return render_template('sign_in.html', responses=responses)
 
 
 @app.route("/files/<uuid>")

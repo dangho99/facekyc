@@ -1,11 +1,14 @@
 import json
 import os
 from tqdm import tqdm
+import numpy as np
 
 from core import server
 from core.model import NeighborSearch
 from PIL import ImageDraw, Image, ImageFont
 from util import dataio
+from flask import jsonify
+
 
 class Predictor:
     def __init__(self, model_dir=None):
@@ -23,6 +26,9 @@ class Predictor:
         # set color and font
         colors = ["red", "blue", "green"]
         font = ImageFont.truetype("Carlito-Regular.ttf", size=18)
+
+        # save result response
+        result = []
 
         for d in tqdm(data, desc="Predict"):
             preds = self.model.predict(d['features'])
@@ -55,9 +61,12 @@ class Predictor:
             # remove draw
             del draw
             # show image
-            pil_image.show()
+            array_image = np.asarray(pil_image)
+            byte_image = dataio.convert_numpy_array_to_bytes(array_image)
+
+            result.append(byte_image)
         
-        return 
+        return result
 
 
 if __name__ == '__main__':
