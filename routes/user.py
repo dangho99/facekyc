@@ -4,21 +4,43 @@ from flask import Blueprint, make_response, request, jsonify, render_template
 from core.model import Core
 from core.monitor import Monitor
 from keeper.environments import SystemEnv
+import pymongo
+
+
 
 user = Blueprint('user', __name__)
 
 
+
 @user.route('pattern', methods=['POST'])
 def api_register_pattern():
+    """
+    inputs: 
+    {
+        "images": [<image_1>, <image_2>, ...],
+        "metadata": {
+            "user_id": <user_id>,
+            "user_name": <user_name>,
+            "phone_number": <phone_number>,
+            ...
+        }
+    }
+    """
     data = request.get_json()
-    features = data.get("features")
-    metadata = data.get('metadata')
-    userid = metadata.get('userid')
 
-    if (not user_id) or (not features):
+    # get images -> send to face-recognition model
+    images = data.get("images")
+
+    # get metadata -> save to mongoDB
+    metadata = data.get('metadata')
+    user_id = metadata.get('user_id')
+    user_name = metadata.get('user_name')
+    phone_number = metadata.get('phone_number')
+
+    if (not user_id) or (not images):
         return make_response(jsonify({
             "data": {},
-            "message": "Invalid format, userid & features can not be empty",
+            "message": "Invalid format, user_id & images can not be empty",
             "message_code": 400
         }), 400)
 

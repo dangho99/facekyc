@@ -16,4 +16,3 @@ def create_database(app):
     if not os.path.exists(DB_PATH):
         db.create_all(app=app)
         print('Created Database! on {}'.format(DB_PATH))
-
