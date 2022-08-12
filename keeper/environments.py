@@ -22,7 +22,7 @@ class SystemEnv:
                 env_vars = json.load(f)
 
             self.__host: str = env_vars["host"]
-            self.__broker_host: str = env_vars["broker_host"]
+            self.__redis_host: str = env_vars["redis_host"]
             self.__k: int = env_vars["k"]
             self.__n_dims: int = env_vars["n_dims"]
             self.__matched_score: float = env_vars["matched_score"]
@@ -34,8 +34,8 @@ class SystemEnv:
         return cls.get_instance().__host
 
     @ClassProperty
-    def broker_host(cls):
-        return cls.get_instance().__broker_host
+    def redis_host(cls):
+        return cls.get_instance().__redis_host
 
     @ClassProperty
     def k(cls):
