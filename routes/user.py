@@ -1,6 +1,7 @@
 import json
 
 import numpy as np
+import redis
 import requests
 from flask import Blueprint, make_response, request, jsonify, render_template
 
@@ -80,7 +81,7 @@ def api_register_pattern():
             "message": "User is exist"
         }), 400)
 
-    # insert if new user
+    # insert to mongodb if new user
     record = {
         "user_id": user_id,
         "user_name": user_name,
@@ -89,6 +90,14 @@ def api_register_pattern():
         "encodings": outputs["encodings"]
     }
     collection.insert_one(record)
+
+    # push redis to training
+    r = redis.Redis(host=SystemEnv.redis_host, port=6379, db=0)
+    training_data = {
+        "user_id": user_id,
+        "encodings": outputs["encodings"]
+    }
+    r.rpush("training_data", json.dumps(training_data))
 
     return make_response(jsonify({
         "message": "Register success"
