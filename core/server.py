@@ -1,10 +1,8 @@
 from flask import request, jsonify, Flask
 from threading import Thread
 import time
-import os
 from queue import Queue
 from threading import Lock
-from .model import NeighborSearch
 import queue
 
 
@@ -28,21 +26,6 @@ def run(model):
             'ok': ok
         })
 
-    @app.route('/api/v2/get-nearest-neighbors', methods=['POST'])
-    def get_nearest_neighbors():
-        data = request.get_json()
-        try:
-            responses, buckets = model.get_nearest_neighbors(data)
-        except Exception as e:
-            print(str(e))
-            return jsonify({
-                'k-nearest-neighbors': [],
-                'summary': []
-            })
-        return jsonify({
-            'k-nearest-neighbors': responses,
-            'summary': buckets
-        })
     app.run(host='0.0.0.0', port=9003)
 
 
