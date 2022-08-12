@@ -12,49 +12,42 @@ import redis
 face = Blueprint('face', __name__)
 
 
-@face.route('register', methods=['POST'])
+@face.route('pattern', methods=['POST'])
 def api_register_pattern():
     data = request.get_json()
     images = data.get('images')
-    metadata = data.get('metadata')
-    userid = metadata.get('userid')
 
-    if (not userid) or (not len(images)):
-        return make_response(jsonify({
-            "data": {},
-            "message": "Invalid format, userid & images can not be empty",
-            "message_code": 400
-        }), 400)
+    encodings = []
+    face_images = []
 
-    features = []
-    for img in images:
-        img = dataio.convert_bytes_to_numpy_array(img)
-        face_encoding = face_recognition.face_encodings(img)
-        if len(face_encoding) != 1:
+    for image in images:
+        # convert bytes to array
+        image = dataio.convert_bytes_to_numpy_array(image)
+        # get face location and face encoding
+        face_locations = face_recognition.face_locations(image)
+        face_encodings = face_recognition.face_encodings(image, face_locations)
+        # validate
+        if len(face_encodings) != 1 or len(face_locations) != 1:
             continue
-        face_encoding = face_encoding[0]
+        face_encoding = face_encodings[0]
+        face_location = face_locations[0]
         if type(face_encoding) == np.ndarray:
             face_encoding = face_encoding.tolist()
-        features.append(face_encoding)
+        # append result
+        encodings.append(face_encoding)
+        top, right, bottom, left = face_location
+        face_image = image[top:bottom, left:right]
+        face_images.append(dataio.convert_numpy_array_to_bytes(face_image))
 
-    if not len(features):
+    if not len(encodings):
         return make_response(jsonify({
-            "data": {},
             "message": "Invalid images",
-            "message_code": 400
         }), 400)
 
-    # save to queue
-    r = redis.Redis(host="localhost", port=6379, db=0)
-    for feat in features:
-        dummy = {"features": feat, "metadata": metadata}
-        r.rpush("face_features", json.dumps(dummy))
-
     return make_response(jsonify({
-        "features": features,
-        "metadata": metadata,
+        "face_images": face_images,
+        "encodings": encodings,
         "message": "Success",
-        "message_code": 200
     }), 200)
 
 
