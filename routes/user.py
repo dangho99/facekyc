@@ -48,6 +48,18 @@ def api_register_pattern():
             "message": "Invalid format, user_id or images not found"
         }), 400)
 
+    # connect to mongodb
+    client = pymongo.MongoClient("mongodb://admin:pass@localhost:27017/")
+    db = client["kotora"]
+    collection = db["customers"]
+
+    # validate exist user or not
+    is_exist_user = collection.find_one({"user_id": user_id})
+    if is_exist_user:
+        return make_response(jsonify({
+            "message": "User is exist"
+        }), 400)
+
     # get face encodings
     """
     inputs:
@@ -66,20 +78,7 @@ def api_register_pattern():
     r = requests.post(url=SystemEnv.serving_host, json=inputs)
     if r.status_code != 200:
         return make_response(r.text, r.status_code)
-
     outputs = json.loads(r.text)
-
-    # connect to mongodb
-    client = pymongo.MongoClient("mongodb://admin:pass@localhost:27017/")
-    db = client["kotora"]
-    collection = db["customers"]
-
-    # validate exist user or not
-    is_exist_user = collection.find_one({"user_id": user_id})
-    if is_exist_user:
-        return make_response(jsonify({
-            "message": "User is exist"
-        }), 400)
 
     # insert to mongodb if new user
     record = {
