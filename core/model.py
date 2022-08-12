@@ -11,10 +11,10 @@ from keeper.environments import SystemEnv
 class NeighborSearch:
     def __init__(self):
         self.matched_score = SystemEnv.matched_score
-        self.duplicate_score = 0.98
-        self.batch_size = 512
-        self.k = 20
-        self.indexing = faiss.IndexFlatIP(128)
+        self.duplicate_score = SystemEnv.duplicate_score
+        self.batch_size = 100
+        self.k = SystemEnv.k
+        self.indexing = faiss.IndexFlatIP(SystemEnv.n_dims)
         self.metadata = []
 
     def fit(self, data):
