@@ -1,18 +1,18 @@
+import json
+
 import numpy as np
+import requests
 from flask import Blueprint, make_response, request, jsonify, render_template
 
-from core.model import Core
-from core.monitor import Monitor
+from util import dataio
 from keeper.environments import SystemEnv
 import pymongo
-
 
 
 user = Blueprint('user', __name__)
 
 
-
-@user.route('pattern', methods=['POST'])
+@user.route('register', methods=['POST'])
 def api_register_pattern():
     """
     inputs: 
@@ -27,63 +27,72 @@ def api_register_pattern():
     }
     """
     data = request.get_json()
+    if not data:
+        return make_response(jsonify({
+            "message": "Invalid format, data not found"
+        }), 400)
 
     # get images -> send to face-recognition model
     images = data.get("images")
 
-    # get metadata -> save to mongoDB
+    # get metadata -> save to mongodb
     metadata = data.get('metadata')
     user_id = metadata.get('user_id')
     user_name = metadata.get('user_name')
     phone_number = metadata.get('phone_number')
 
+    # validate data
     if (not user_id) or (not images):
         return make_response(jsonify({
-            "data": {},
-            "message": "Invalid format, user_id & images can not be empty",
-            "message_code": 400
+            "message": "Invalid format, user_id or images not found"
         }), 400)
 
-    matched_score = Core.verify(user_id=user_id, features=features)
-    matched_score = np.mean(matched_score)
+    # get face encodings
+    """
+    inputs:
+    {
+        "images": [<image_1>, <image_2>, ...],
+        "user_id": <user_id>
+    }
+    outputs:
+    {
+        "face_images": [<face_image_1>, <face_image_2>, ...],
+        "encodings": [<encoding_1>, <encoding_2>, ...],
+        "user_id": <user_id>
+    }
+    """
+    inputs = {"images": images, "user_id": user_id}
+    r = requests.post(url=SystemEnv.serving_host, json=inputs)
+    if r.status_code != 200:
+        return make_response(r.text, r.status_code)
 
-    if matched_score != -1:
-        is_success = bool(matched_score < SystemEnv.matching_threshold)
-        Monitor.capture(
-            user_id=user_id,
-            is_success=is_success,
-            event_type="verify_pattern",
-            predicted="Owner" if is_success else "Imposter",
-            score=matched_score,
-            data=features
-        )
+    outputs = json.loads(r.text)
 
-    result = Core.register(user_id=user_id, features=features)
+    # connect to mongodb
+    client = pymongo.MongoClient("mongodb://admin:pass@localhost:27017/")
+    db = client["kotora"]
+    collection = db["customers"]
 
-    if not result:
+    # validate exist user or not
+    is_exist_user = collection.find_one({"user_id": user_id})
+    if is_exist_user:
         return make_response(jsonify({
-            "data": {},
-            "message": "Database is busy",
-            "message_code": 10003
-        }), 401)
+            "message": "User is exist"
+        }), 400)
 
-    Monitor.capture(
-        user_id=user_id,
-        is_success=result,
-        event_type="register_pattern",
-        data=features
-    )
+    # insert if new user
+    record = {
+        "user_id": user_id,
+        "user_name": user_name,
+        "phone_number": phone_number,
+        "face_images": outputs["face_images"],
+        "encodings": outputs["encodings"]
+    }
+    collection.insert_one(record)
 
-    return render_template(
-        "api_register_pattern_response.json.jinja",
-        user_id=user_id,
-        matched_score=np.mean(matched_score),
-        dense_score=Core.dense_score(user_id),
-        complete_score=Core.complete_score(user_id),
-        message="Success",
-        message_code=200,
-        **Monitor.user_info(user_id)
-    )
+    return make_response(jsonify({
+        "message": "Register success"
+    }), 200)
 
 
 @user.route('pattern', methods=['DELETE'])
