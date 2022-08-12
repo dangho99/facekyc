@@ -22,33 +22,37 @@ class SystemEnv:
                 env_vars = json.load(f)
 
             self.__host: str = env_vars["host"]
-            self.__matched_score: str = env_vars["matched_score"]
-            self.__distance_metric: str = env_vars["distance_metric"]
-            self.__serving_url: str = env_vars["serving_url"]
-            self.__serving_ip: str = env_vars["serving_ip"]
-            self.__serving_port: int = env_vars["serving_port"]
-            self.__model_version: int = env_vars["model_version"]
+            self.__broker_host: str = env_vars["broker_host"]
+            self.__k: int = env_vars["k"]
+            self.__n_dims: int = env_vars["n_dims"]
+            self.__matched_score: float = env_vars["matched_score"]
+            self.__duplicate_score: float = env_vars["duplicate_score"]
+            self.__serving_host: str = env_vars["serving_host"]
 
     @ClassProperty
     def host(cls):
         return cls.get_instance().__host
 
     @ClassProperty
+    def broker_host(cls):
+        return cls.get_instance().__broker_host
+
+    @ClassProperty
+    def k(cls):
+        return cls.get_instance().__k
+
+    @ClassProperty
+    def n_dims(cls):
+        return cls.get_instance().__n_dims
+
+    @ClassProperty
     def matched_score(cls):
         return cls.get_instance().__matched_score
 
     @ClassProperty
-    def distance_metric(cls):
-        return cls.get_instance().__distance_metric
+    def duplicate_score(cls):
+        return cls.get_instance().__duplicate_score
 
     @ClassProperty
-    def model_version(cls):
-        return cls.get_instance().__model_version
-
-    @ClassProperty
-    def serving_url(cls):
-        return cls.get_instance().__serving_url.format(
-            server_ip=cls.get_instance().__serving_ip,
-            server_port=cls.get_instance().__serving_port,
-            model_version=cls.get_instance().__model_version
-        )
+    def serving_host(cls):
+        return cls.get_instance().__serving_host
