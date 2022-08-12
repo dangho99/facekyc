@@ -20,8 +20,6 @@ def create_app():
 
     socket_io.init_app(app)
 
-    os.makedirs(SystemEnv.data_path, exist_ok=True)
-
     return app
 
 
