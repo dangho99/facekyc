@@ -22,20 +22,16 @@ class SystemEnv:
                 env_vars = json.load(f)
 
             self.__host: str = env_vars["host"]
-            self.__redis_host: str = env_vars["redis_host"]
             self.__k: int = env_vars["k"]
             self.__n_dims: int = env_vars["n_dims"]
             self.__matched_score: float = env_vars["matched_score"]
             self.__duplicate_score: float = env_vars["duplicate_score"]
+            self.__checkpoint_path: str = env_vars["checkpoint_path"]
             self.__serving_host: str = env_vars["serving_host"]
 
     @ClassProperty
     def host(cls):
         return cls.get_instance().__host
-
-    @ClassProperty
-    def redis_host(cls):
-        return cls.get_instance().__redis_host
 
     @ClassProperty
     def k(cls):
@@ -52,6 +48,10 @@ class SystemEnv:
     @ClassProperty
     def duplicate_score(cls):
         return cls.get_instance().__duplicate_score
+
+    @ClassProperty
+    def checkpoint_path(cls):
+        return cls.get_instance().__checkpoint_path
 
     @ClassProperty
     def serving_host(cls):

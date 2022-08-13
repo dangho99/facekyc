@@ -1,1 +1,0 @@
-docker run --name my_first_redis -dp 6379:6379 redis

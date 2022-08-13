@@ -19,7 +19,7 @@ def convert_numpy_array_to_bytes(array: np.array) -> str:
     compressed_file = io.BytesIO()
     Image.fromarray(array).save(compressed_file, format="JPEG")
     compressed_file.seek(0)
-    return json.dumps(base64.b64encode(compressed_file.read()).decode())
+    return base64.b64encode(compressed_file.read()).decode()
 
 
 def convert_img_to_bytes(img_path):
