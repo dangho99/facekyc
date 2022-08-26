@@ -22,7 +22,7 @@ class NeighborSearch:
         encodings = []
         metadata = []
         for d in tqdm(data, desc='Training'):
-            encodings.append(d['encoding'])
+            encodings.append(d['encodings'])
             metadata.append(d['metadata'])
             if len(encodings) >= 100:
                 self._fit(encodings, metadata)
