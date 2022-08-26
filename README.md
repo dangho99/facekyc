@@ -1,20 +1,15 @@
 ## Free Identity verification KYC
 
-Run demo:
-
 ```sh
-# deploy redis broker
-bash broker/redis.sh
+# Deploy MongoDB and Redis queue
+docker-compose up -d
 
-# sign up and sign in
-python3 upload.py
-
-# face detection and encoding
+# Deploy face recognition model
 python3 gateway.py
 
-# trainer or indexing
-python3 train.py
+# Deploy indexing model 
+python3 server.py
 
-# predictor
-python3 predict.py
+# Deploy backend api
+python3 main.py
 ```
