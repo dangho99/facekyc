@@ -43,28 +43,30 @@ def api_register_pattern():
     phone_number = metadata.get('phone_number')
 
     # validate data
-    if (not user_id) or (not images):
+    if not user_id:
         return make_response(jsonify({
-            "message": "Invalid format, user_id or images not found"
+            "message": "Invalid format, user_id not found"
         }), 400)
 
     # get face encodings
     """
     inputs: {
-        "images": [<image_1>, <image_2>, ...],
-        "user_id": <user_id>
+        "images": [<image_1>, <image_2>, ...]
     }
     outputs: {
         "face_images": [<face_image_1>, <face_image_2>, ...],
         "encodings": [<encoding_1>, <encoding_2>, ...],
-        "user_id": <user_id>
+        "message": "<message>"
     }
     """
-    inputs = {"images": images, "user_id": user_id}
-    r = requests.post(url=SystemEnv.serving_host, json=inputs)
-    if r.status_code != 200:
-        return make_response(r.text, r.status_code)
-    outputs = json.loads(r.text)
+    if len(images) > 0:
+        inputs = {"images": images}
+        r = requests.post(url=SystemEnv.serving_host, json=inputs)
+        if r.status_code != 200:
+            return make_response(r.text, r.status_code)
+        outputs = json.loads(r.text)
+    else:
+        outputs = {}
 
     # connect to mongodb
     client = pymongo.MongoClient("mongodb://admin:pass@{}:27017/".format(SystemEnv.host))
@@ -75,8 +77,8 @@ def api_register_pattern():
         "user_id": user_id,
         "user_name": user_name,
         "phone_number": phone_number,
-        "face_images": outputs["face_images"],
-        "encodings": outputs["encodings"]
+        "face_images": outputs.get("face_images", []),
+        "encodings": outputs.get("encodings", [])
     }
     # validate exist user or not
     exist_user = collection.find_one({"user_id": user_id})
@@ -90,16 +92,24 @@ def api_register_pattern():
         collection.insert_one(record)
         message = "Register success"
 
+    # not training when encodings is empty
+    if not len(record["encodings"]):
+        return make_response(jsonify({
+            "message": message,
+            "training": False
+        }), 200)
+
     # push redis -> prepare training
     r = redis.Redis(host=SystemEnv.host, port=6379, db=0)
-    for encodings in outputs["encodings"]:
+    for encoding in record["encodings"]:
         r.rpush("training_data", json.dumps({
             "metadata": {"user_id": user_id},
-            "encodings": encodings
+            "encoding": encoding
         }))
 
     return make_response(jsonify({
-        "message": message
+        "message": message,
+        "training": True
     }), 200)
 
 
