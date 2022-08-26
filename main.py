@@ -104,7 +104,7 @@ def api_register_pattern():
     for encoding in record["encodings"]:
         r.rpush("training_data", json.dumps({
             "metadata": {"user_id": user_id},
-            "encoding": encoding
+            "encodings": encoding
         }))
 
     return make_response(jsonify({
