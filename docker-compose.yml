@@ -37,27 +37,6 @@ services:
     image: redis
     ports:
       - '6379:6379'
-  api:
-    build:
-      dockerfile: Dockerfile
-      context: .
-    image: face-ekyc-api
-    container_name: face-ekyc_api
-    network_mode: host
-  gateway:
-    build:
-      dockerfile: Dockerfile_gateway
-      context: .
-    image: face-ekyc-model
-    container_name: face-ekyc_model
-    network_mode: host
-  server:
-    build:
-      dockerfile: Dockerfile_server
-      context: .
-    image: face-ekyc-indexing
-    container_name: face-ekyc_indexing
-    network_mode: host
 
 networks:
   mongo-compose-network:
