@@ -46,7 +46,7 @@ def run(model_dir, api_host='0.0.0.0', api_port=9000, debug=True):
                 """
                 for pred in preds:
                     if not pred["user_id"]:
-                        pred["user_id"] = "<unk>"
+                        # pred["user_id"] = "<unk>"
                         continue
 
                     record = collection.find_one({"user_id": pred["user_id"]})
