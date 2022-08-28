@@ -1,4 +1,3 @@
-import time
 from datetime import datetime
 from .database import connect_db, close_db
 import time
