@@ -1,4 +1,4 @@
-from flask import Flask, make_response, request, jsonify, render_template
+from flask import Flask, make_response, request, jsonify
 from threading import Thread, Lock
 from tqdm import tqdm
 import requests
@@ -7,11 +7,11 @@ import json
 import time
 import os
 
+from util.logger import save_logs, get_timestamp
 from util.database import connect_db, close_db
 from keeper.environments import SystemEnv
 from core.model import NeighborSearch
 from util.hash import md5
-from util import dataio
 
 
 # init model directory
@@ -89,33 +89,38 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             data["face_images"].extend(exist_user["face_images"])
             data["encodings"].extend(exist_user["encodings"])
             collection.update_one({"user_id": user_id},
-                                {"$set": data})
+                                  {"$set": data})
         close_db()
 
         # make response
         if not exist_user:
+            method = "add"
             if not len(images):
-                return make_response(jsonify({
-                    "message": "Register success, but empty images"
-                }), 200)
-            if not len(data["encodings"]):
-                return make_response(jsonify({
-                    "message": "Register success, but invalid images"
-                }), 200)
+                message = "Register success, but empty images"
+            elif not len(data["encodings"]):
+                message = "Register success, but invalid images"
             else:
-                return make_response(jsonify({
-                    "message": "Register success"
-                }), 200)
+                message = "Register success"
         else:
+            method = "edit"
             if not len(data["encodings"]):
-                return make_response(jsonify({
-                    "message": "Update success, but invalid images"
-                }), 200)
+                message = "Update success, but invalid images"
             else:
-                return make_response(jsonify({
-                    "message": "Update success"
-                }), 200)
+                message = "Update success"
 
+        # save logs
+        log = {k: v for k, v in data.items() if k not in ['_id', 'face_images', 'encodings']}
+        log.update({
+            "timestamp": get_timestamp(),
+            "images": images,
+            "message": message,
+            "method": method
+        })
+        save_logs(data=log, collection_name="register_logs")
+
+        return make_response(jsonify({
+            "message": message
+        }), 200)
 
     @user.route('/api/user/pattern', methods=['PUT'])
     def api_verify_pattern():
@@ -161,14 +166,19 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
                     # get more info
                     for k, v in record.items():
-                        if k in ['images', 'face_images', 'encodings', '_id']: # not need
-                            continue
-                        pred[k] = v
+                        if k in ['zcfg_requester_comboname', 'zcfg_requester_phone_number',
+                                 'zcfg_requester_address_email', 'zcfg_requester_id_passport']:
+                            pred[k] = v
                     for k, v in d.items():
-                        if k == "encodings":
-                            continue
-                        pred[k] = v[i]
-                    
+                        if k != "encodings":
+                            pred[k] = v[i]
+
+                    # save logs
+                    pred.update({
+                        "timestamp": get_timestamp()
+                    })
+                    save_logs(data=pred, collection_name="verify_logs")
+
                 responses.append(preds)
             ok = True
         except Exception as e:
@@ -182,7 +192,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             'responses': responses,
             'ok': ok
         })
-
 
     @user.route('/api/user/pattern', methods=['DELETE'])
     def api_reset_pattern():
@@ -208,67 +217,25 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             "message": "Delete success"
         }), 200)
 
-    @user.route('/api/user/monitor', methods=['GET'])
-    def get_history():
+    @user.route('/api/user/monitor', methods=['GET', 'POST'])
+    def api_monitor_user():
         data = request.get_json()
-        response = []
+        responses = []
 
-        # client = pymongo.MongoClient("mongodb://admin:pass@{}:27017/".format(SystemEnv.host))
-        # db = client["kotora"]
-        spec = data
-        zstart_date = data.get('zstart_date')
-        zend_date = data.get('zend_date')
+        zstart_date = data.get('zstart_date', '')
+        zend_date = data.get('zend_date', '')
         if zstart_date:
-            spec['zstart_date'] = {'$gte': zstart_date}
+            data['zstart_date'] = {'$gte': zstart_date}
         if zend_date:
-            spec['zend_date'] = {'$lte': zend_date}
-        colection_customers = connect_db('customers')
-        customers = colection_customers.find(spec)
-        for customer in customers:
-            res = customer
-            res['history_registry_add'] = []
-            res['history_registry_edit'] = []
-            res['history_login'] = []
-            res['history_logout'] = []
-            # Lay thong tin lich su dang ki
-            collection_signup = connect_db("person_signup")
-            spec_signup = {'user_id': customer['user_id']}
-            results = collection_signup.find(spec_signup)
-            for result in results:
-                if result['method'] == 'add':
-                    res['history_registry_add'].append({
-                        'add_registry_time': result.get('timestamp'),
-                        'add_registry_status': result.get('status'),
-                        'add_registry_faces': result.get('images'),
-                        'add_registry_message': result.get('message')
-                    })
-                else:
-                    res['history_registry_edit'].append({
-                        'edit_registry_time': result.get('timestamp'),
-                        'edit_registry_status': result.get('status'),
-                        'edit_registry_faces': result.get('images'),
-                        'edit_registry_message': result.get('message')
-                    })
-            # Lay thong tin lich su verify
-            collection_login = connect_db("person_verify")
-            spec_verify = {'user_id': customer['user_id']}
-            results = collection_login.find(spec_verify)
-            for result in results:
-                if result['method'] == 0:
-                    res['history_login'].append({
-                        'login_time': result.get('timestamp'),
-                        'login_face': result.get('face_images'),
-                        'gate_location': result.get('gate_location')
-                    })
-                else:
-                    res['history_logout'].append({
-                        'logout_time': result.get('timestamp'),
-                        'logout_face': result.get('face_images'),
-                        'gate_location': result.get('gate_location')
-                    })
-            response.append(res)
-        return make_response(jsonify(response), 200)
+            data['zend_date'] = {'$lte': zend_date}
 
+        for collection_name in ["register_logs", "verify_logs"]:
+            collection = connect_db(collection_name)
+            responses[collection_name] = []
+            for record in collection.find(data, {"_id": 0}):
+                responses[collection_name].append(record)
+
+        return make_response(jsonify(responses), 200)
 
     def auto_train():
         interval = 5
