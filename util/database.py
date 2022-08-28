@@ -7,13 +7,13 @@ db_uri = "mongodb://{}:{}@{}:27017/".format(SystemEnv.admin_user,
                                             SystemEnv.host)
 
 
-def connect_db(collection: str):
+def connect_db(collection_name: str):
     """
     Connect to specific collection
     """
     client = pymongo.MongoClient(db_uri)
     db = client["kotora"]
-    return db[collection]
+    return db[collection_name]
 
 
 def close_db():
