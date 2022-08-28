@@ -21,15 +21,14 @@ def save_register_history(user_id, images, message, method="add"):
     return
 
 
-def save_verify_history(user_id, face_images, gate_location, status, method="add"):
+def save_verify_history(user_id, face_images, gate_location, status):
     collection = connect_db("verify_history")
     record = {
         "timestamp": get_timestamp(),
         "user_id": user_id,
         "face_images": face_images,
         "gate_location": gate_location,
-        "status": status,
-        "method": method
+        "status": status
     }
     collection.insert_one(record)
     close_db()
