@@ -7,7 +7,7 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_DATABASE=auth
-      - MONGO_INITDB_ROOT_PASSWORD=pass
+      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
     networks: 
       - mongo-compose-network
     ports:
@@ -25,9 +25,9 @@ services:
     environment:
       - ME_CONFIG_MONGODB_SERVER=mongo-dev
       - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=pass
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=P4ssW0rD
       - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=tribes
+      - ME_CONFIG_BASICAUTH_PASSWORD=S3cR3T
     ports:
       - '8081:8081'
     volumes: 

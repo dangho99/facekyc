@@ -18,7 +18,7 @@ class SystemEnv:
         else:
             SystemEnv.__instance = self
 
-            with open("./env.json") as f:
+            with open("env.json") as f:
                 env_vars = json.load(f)
 
             self.__host: str = env_vars["host"]
@@ -28,6 +28,8 @@ class SystemEnv:
             self.__duplicate_score: float = env_vars["duplicate_score"]
             self.__checkpoint_path: str = env_vars["checkpoint_path"]
             self.__serving_host: str = env_vars["serving_host"]
+            self.__admin_user: str = env_vars["admin_user"]
+            self.__admin_password: str = env_vars["admin_password"]
 
     @ClassProperty
     def host(cls):
@@ -56,3 +58,11 @@ class SystemEnv:
     @ClassProperty
     def serving_host(cls):
         return cls.get_instance().__serving_host
+
+    @ClassProperty
+    def admin_user(cls):
+        return cls.get_instance().__admin_user
+
+    @ClassProperty
+    def admin_password(cls):
+        return cls.get_instance().__admin_password

@@ -5,6 +5,7 @@ from flask import Blueprint, Flask, make_response, request, jsonify, render_temp
 import face_recognition
 from util import dataio
 from PIL import Image
+import numpy as np
 from collections import defaultdict
 import requests
 
@@ -64,15 +65,16 @@ def api_verify_pattern():
         face_locations = face_recognition.face_locations(unknown_image)
         face_encodings = face_recognition.face_encodings(unknown_image, face_locations)
         face_encodings = [features.tolist() for features in face_encodings if type(features) == np.ndarray]
-        d = {"image": image,
-             "locations": face_locations,
+        d = {"face_images": face_locations,
+             "gate_location": np.arange(len(face_encodings)).tolist(),
+             "status": [1] * len(face_encodings),
              "encodings": face_encodings
         }
         payload.append(d)
-    
+
     # POST request
-    url = "http://localhost:9000/api/model/predict"
-    r = requests.post(url=url, json=payload)
+    url = "http://localhost:8999/api/user/pattern"
+    r = requests.put(url=url, json=payload)
     response = make_response(
         jsonify(
             json.loads(r.text)
