@@ -8,29 +8,8 @@ def get_timestamp():
     return datetime.fromtimestamp(time.time()).strftime(formatter)
 
 
-def save_register_history(user_id, images, message, method="add"):
-    collection = connect_db("register_history")
-    record = {
-        "timestamp": get_timestamp(),
-        "user_id": user_id,
-        "images": images,
-        "message": message,
-        "method": method
-    }
-    collection.insert_one(record)
-    close_db()
-    return
-
-
-def save_verify_history(user_id, face_images, gate_location, status):
-    collection = connect_db("verify_history")
-    record = {
-        "timestamp": get_timestamp(),
-        "user_id": user_id,
-        "face_images": face_images,
-        "gate_location": gate_location,
-        "status": status
-    }
-    collection.insert_one(record)
+def save_logs(data, collection_name):
+    collection = connect_db(collection_name)
+    collection.insert_one(data)
     close_db()
     return
