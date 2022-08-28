@@ -1,13 +1,10 @@
-import json
-import os
-import numpy as np
-from flask import Blueprint, Flask, make_response, request, jsonify, render_template
+from flask import Blueprint, Flask, make_response, request, jsonify
 import face_recognition
-from util import dataio
-from PIL import Image
 import numpy as np
-from collections import defaultdict
 import requests
+import json
+
+from util import dataio
 
 
 face = Blueprint('face', __name__)
