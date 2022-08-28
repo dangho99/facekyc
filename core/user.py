@@ -208,6 +208,67 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             "message": "Delete success"
         }), 200)
 
+    @user.route('/api/user/monitor', methods=['GET'])
+    def get_history():
+        data = request.get_json()
+        response = []
+
+        # client = pymongo.MongoClient("mongodb://admin:pass@{}:27017/".format(SystemEnv.host))
+        # db = client["kotora"]
+        spec = data
+        zstart_date = data.get('zstart_date')
+        zend_date = data.get('zend_date')
+        if zstart_date:
+            spec['zstart_date'] = {'$gte': zstart_date}
+        if zend_date:
+            spec['zend_date'] = {'$lte': zend_date}
+        colection_customers = connect_db('customers')
+        customers = colection_customers.find(spec)
+        for customer in customers:
+            res = customer
+            res['history_registry_add'] = []
+            res['history_registry_edit'] = []
+            res['history_login'] = []
+            res['history_logout'] = []
+            # Lay thong tin lich su dang ki
+            collection_signup = connect_db("person_signup")
+            spec_signup = {'user_id': customer['user_id']}
+            results = collection_signup.find(spec_signup)
+            for result in results:
+                if result['method'] == 'add':
+                    res['history_registry_add'].append({
+                        'add_registry_time': result.get('timestamp'),
+                        'add_registry_status': result.get('status'),
+                        'add_registry_faces': result.get('images'),
+                        'add_registry_message': result.get('message')
+                    })
+                else:
+                    res['history_registry_edit'].append({
+                        'edit_registry_time': result.get('timestamp'),
+                        'edit_registry_status': result.get('status'),
+                        'edit_registry_faces': result.get('images'),
+                        'edit_registry_message': result.get('message')
+                    })
+            # Lay thong tin lich su verify
+            collection_login = connect_db("person_verify")
+            spec_verify = {'user_id': customer['user_id']}
+            results = collection_login.find(spec_verify)
+            for result in results:
+                if result['method'] == 0:
+                    res['history_login'].append({
+                        'login_time': result.get('timestamp'),
+                        'login_face': result.get('face_images'),
+                        'gate_location': result.get('gate_location')
+                    })
+                else:
+                    res['history_logout'].append({
+                        'logout_time': result.get('timestamp'),
+                        'logout_face': result.get('face_images'),
+                        'gate_location': result.get('gate_location')
+                    })
+            response.append(res)
+        return make_response(jsonify(response), 200)
+
 
     def auto_train():
         interval = 5
