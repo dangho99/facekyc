@@ -7,12 +7,12 @@ def get_timestamp():
     return datetime.fromtimestamp(time.time()).strftime(formatter)
 
 
-def save_register_history(user_id, face_images, message, method="add"):
+def save_register_history(user_id, images, message, method="add"):
     collection = connect_db("register_history")
     record = {
         "timestamp": get_timestamp(),
         "user_id": user_id,
-        "face_images": face_images,
+        "images": images,
         "message": message,
         "method": method
     }
