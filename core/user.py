@@ -59,9 +59,9 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         images = data.get("images", [])
 
         if len(images) > 0:
-            r = requests.post(url=SystemEnv.serving_host, json={"images": images})
-            if r.status_code == 200:
-                responses = json.loads(r.text)
+            responses = requests.post(url=SystemEnv.serving_host, json={"images": images})
+            if responses.status_code == 200:
+                responses = json.loads(responses.text)
             else:
                 responses = {}
         else:
@@ -75,7 +75,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
         # push redis to indexing
         if len(data["encodings"]) > 0:
-            r = redis.Redis(host=SystemEnv.host, port=6379, db=0)
             for encoding in data["encodings"]:
                 r.rpush("training_data", json.dumps({
                     "metadata": {"user_id": user_id},
