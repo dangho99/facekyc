@@ -179,6 +179,9 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                     })
                     save_logs(data=pred, collection_name="verify_logs")
 
+                    # re-assign
+                    print(pred)
+
                 responses.append(preds)
             ok = True
         except Exception as e:
@@ -220,7 +223,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
     @user.route('/api/user/monitor', methods=['GET', 'POST'])
     def api_monitor_user():
         data = request.get_json()
-        responses = []
+        responses = {}
 
         zstart_date = data.get('zstart_date', '')
         zend_date = data.get('zend_date', '')
