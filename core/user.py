@@ -36,7 +36,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
     @user.route('/api/user/pattern', methods=['POST'])
     def api_register_pattern():
         """
-        inputs: 
+        inputs:
         {
             "images": [<image_1>, <image_2>, ...],
             "zcfg_requester_comboname": "<username>",
@@ -109,7 +109,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                 message = "Update success"
 
         # save logs
-        log = {k: v for k, v in data.items() if k not in ['_id', 'face_images', 'encodings']}
+        log = {k: v for k, v in data.items() if k not in ['face_images', 'encodings']}
         log.update({
             "timestamp": get_timestamp(),
             "images": images,
@@ -125,7 +125,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
     @user.route('/api/user/pattern', methods=['PUT'])
     def api_verify_pattern():
         """
-        inputs: 
+        inputs:
         [
             {
                 "encodings": ["<encoding_1>", "<encoding_2>", ...],
@@ -165,23 +165,25 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                         continue
 
                     # get more info
+                    for k, v in d.items():
+                        if k != "encodings":
+                            pred[k] = v[i]
+
                     for k, v in record.items():
                         if k in ['zcfg_requester_comboname', 'zcfg_requester_phone_number',
                                  'zcfg_requester_address_email', 'zcfg_requester_id_passport']:
                             pred[k] = v
-                    for k, v in d.items():
-                        if k != "encodings":
-                            pred[k] = v[i]
 
                     # save logs
                     pred.update({
                         "timestamp": get_timestamp()
                     })
                     save_logs(data=pred, collection_name="verify_logs")
+                    preds[i] = pred
 
-                    # re-assign
-                    print(pred)
-
+                for pred in preds:
+                    if "_id" in pred:
+                        del pred["_id"]
                 responses.append(preds)
             ok = True
         except Exception as e:
