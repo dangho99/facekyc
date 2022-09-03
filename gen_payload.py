@@ -29,7 +29,6 @@ def gen():
             }
         else:
             # register payload format
-
             payload = {
                 "images": [dataio.convert_img_to_bytes(img_path)],
                 "zcfg_requester_address_email": "{}@gmail.com".format(os.path.basename(img_path)),
