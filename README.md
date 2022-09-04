@@ -1,9 +1,12 @@
 ## Free Identity verification KYC
 
-1. Run application:
+1. Run application (python>=3.8):
 ```sh
 # Deploy MongoDB and Redis queue
 docker-compose up -d
+
+# install package
+pip3 install -r requirements.txt
 
 # Deploy face recognition model
 python3 gateway.py
