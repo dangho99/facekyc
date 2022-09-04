@@ -60,7 +60,10 @@ def api_verify_pattern():
         face_locations = face_recognition.face_locations(unknown_image)
         face_encodings = face_recognition.face_encodings(unknown_image, face_locations)
         face_encodings = [features.tolist() for features in face_encodings if type(features) == np.ndarray]
-        d = {"face_images": face_locations,
+        d = {"face_images": [
+                dataio.convert_numpy_array_to_bytes(unknown_image[top:bottom, left:right])
+                for (top, right, bottom, left) in face_locations
+              ],
              "gate_location": np.arange(len(face_encodings)).tolist(), #fake data
              "status": [1] * len(face_encodings), #fake data
              "encodings": face_encodings
