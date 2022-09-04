@@ -13,12 +13,71 @@ python3 main.py
 ```
 
 2. Run API:
+- Register (4.1):
 
-- Register:
+`Endpoint`: http://localhost:8999/api/user/pattern
+
+`Method`: POST
+
+`Content-Type`: application/json
+
+`Body`:
+```json
+{
+    "images": ["<image_1>", "<image_2>", "<image_3>", "<image_4>", "<image_5>"],
+    "zcfg_requester_comboname": "<requester_fullname>",
+    "zcfg_requester_organization": "<organization>",
+    "zcfg_requester_address_email": "<requester_email>",
+    "zcfg_requester_id_passport": "<cccd/cmnd>",
+    "zcfg_requester_phone_number": "<phone_number>",
+    "zcfg_requester_access_purpose": "<access_purpose>",
+    "attachments": "<upload_files>",
+    "zcfg_approver_comboname": "<approver_fullname>",
+    "zcfg_approver_address_email": "<approver_email>",
+    "zusing": true,
+    "znot_using": false,
+    "zstart_date": "<checkin_time>",
+    "zend_date": "<checkout_time>",
+    "ztask": "<task_name>"
+}
 ```
-Endpoint: localhost:8999/api/user/pattern
-Method: POST
-Content-Type: application/json
+
+`Response`:
+```json
+{
+    "message": "<message>"
+}
+```
+
+`Examples`:
+- Register without images:
+
+Body:
+```json
+{
+    "images": [],
+    "zcfg_requester_comboname": "hoangp",
+    "zcfg_requester_organization": "viettel",
+    "zcfg_requester_address_email": "hoangp@gmail.com",
+    "zcfg_requester_id_passport": "038585963",
+    "zcfg_requester_phone_number": "0391408249",
+    "zcfg_requester_access_purpose": "tour",
+    "attachments": "",
+    "zcfg_approver_comboname": "administrator",
+    "zcfg_approver_address_email": "superadmin@telehouse.com",
+    "zusing": true,
+    "zstart_date": "2022-09-01 08:00:00",
+    "zend_date": "2022-09-01 10:00:00",
+    "ztask": "tour"
+}
+```
+
+Response:
+```json
+{
+
+}
+```
 
 Body:
 {
