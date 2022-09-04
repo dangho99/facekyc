@@ -193,10 +193,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
         close_db()
 
-        return jsonify({
-            'responses': responses,
-            'ok': ok
-        })
+        return jsonify(responses)
 
     @user.route('/api/user/pattern', methods=['DELETE'])
     def api_reset_pattern():
@@ -230,9 +227,9 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         zstart_date = data.get('zstart_date', '')
         zend_date = data.get('zend_date', '')
         if zstart_date:
-            data['zstart_date'] = {'$gte': zstart_date}
+            data['zstart_date'] = {"$gte": zstart_date}
         if zend_date:
-            data['zend_date'] = {'$lte': zend_date}
+            data['zend_date'] = {"$lte": zend_date}
 
         for collection_name in ["register_logs", "verify_logs"]:
             collection = connect_db(collection_name)
