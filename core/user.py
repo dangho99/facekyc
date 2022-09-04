@@ -68,7 +68,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             responses = {}
 
         # generate unique user_id
-        user_id = md5("{}_{}".format(address_email, id_passport))
+        user_id = md5("{}_{}".format(id_passport, address_email))
         data["user_id"] = user_id
         data["face_images"] = responses.get("face_images", [])
         data["encodings"] = responses.get("encodings", [])
