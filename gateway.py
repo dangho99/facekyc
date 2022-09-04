@@ -12,8 +12,7 @@ face = Blueprint('face', __name__)
 
 @face.route('pattern', methods=['POST'])
 def api_register_pattern():
-    data = request.get_json()
-    images = data.get('images')
+    images = request.get_json()
 
     encodings = []
     face_images = []
@@ -51,8 +50,7 @@ def api_register_pattern():
 
 @face.route('pattern', methods=['PUT'])
 def api_verify_pattern():
-    data = request.get_json()
-    images = data.get('images')
+    images = request.get_json()
 
     payload = []
     for image in images:
@@ -63,8 +61,8 @@ def api_verify_pattern():
         face_encodings = face_recognition.face_encodings(unknown_image, face_locations)
         face_encodings = [features.tolist() for features in face_encodings if type(features) == np.ndarray]
         d = {"face_images": face_locations,
-             "gate_location": np.arange(len(face_encodings)).tolist(),
-             "status": [1] * len(face_encodings),
+             "gate_location": np.arange(len(face_encodings)).tolist(), #fake data
+             "status": [1] * len(face_encodings), #fake data
              "encodings": face_encodings
         }
         payload.append(d)
@@ -72,12 +70,11 @@ def api_verify_pattern():
     # POST request
     url = "http://localhost:8999/api/user/pattern"
     r = requests.put(url=url, json=payload)
-    response = make_response(jsonify(json.loads(r.text)), r.status_code,)
+    response = make_response(jsonify(json.loads(r.text)), r.status_code)
     return response
 
 
 if __name__ == '__main__':
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'gjr39dkjn344_!67#'
     app.register_blueprint(face, url_prefix='/api/user')
     app.run(host="0.0.0.0", port="8501", debug=True)

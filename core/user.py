@@ -59,7 +59,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         images = data.get("images", [])
 
         if len(images) > 0:
-            responses = requests.post(url=SystemEnv.serving_host, json={"images": images})
+            responses = requests.post(url=SystemEnv.serving_host, json=images)
             if responses.status_code == 200:
                 responses = json.loads(responses.text)
             else:
@@ -68,7 +68,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             responses = {}
 
         # generate unique user_id
-        user_id = md5(address_email + id_passport)
+        user_id = md5("{}_{}".format(address_email, id_passport))
         data["user_id"] = user_id
         data["face_images"] = responses.get("face_images", [])
         data["encodings"] = responses.get("encodings", [])
