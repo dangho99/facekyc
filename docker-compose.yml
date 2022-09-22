@@ -1,43 +1,48 @@
 version: "3.2"
 
 services:
-  db:
-    container_name: mongo-dev
-    image: mongo:4.2
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_DATABASE=auth
-      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
-    networks: 
-      - mongo-compose-network
+  mongodb:
+    container_name: mongo_database
+    image: mongo:6.0.1
     ports:
       - '27017:27017'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
     volumes: 
-      - ./database:/data/db
+      - mongo-data:/data/db
   
   mongo-express:
-    container_name: mongo-express
-    image: mongo-express
-    depends_on:
-      - db
-    networks: 
-      - mongo-compose-network
+    container_name: mongo_express
+    image: mongo-express:1.0.0-alpha
+    restart: always
     environment:
-      - ME_CONFIG_MONGODB_SERVER=mongo-dev
+      - ME_CONFIG_MONGODB_SERVER=mongodb
       - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
       - ME_CONFIG_MONGODB_ADMINPASSWORD=P4ssW0rD
-      - ME_CONFIG_BASICAUTH_USERNAME=admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=S3cR3T
     ports:
       - '8081:8081'
-    volumes: 
-      - ./database:/data/db
+
   redis:
     container_name: redis-queue
-    image: redis
+    image: redis:7.0.4
     ports:
       - '6379:6379'
 
-networks:
-  mongo-compose-network:
-    driver: bridge
+  api:
+    image: face-kyc-api:v0.0.1
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: face_kyc-api
+    network_mode: "host"
+    volumes:
+      - /var/lib/docker/face-kyc-api/ckpt/:/app/ckpt/
+    ports:
+    - "9980:9980"
+    depends_on:
+      - redis
+
+volumes:
+  mongo-data:
+    driver: local
