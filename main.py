@@ -1,6 +1,7 @@
 from core.user import run
+from keeper.environments import SystemEnv
 
 
 if __name__ == '__main__':
     # run api
-    run(api_host="0.0.0.0", api_port=8999, debug=True)
+    run(api_host=SystemEnv.host, api_port=9980, debug=True)
