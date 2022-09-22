@@ -1,5 +1,7 @@
 ## Free Identity verification KYC
 
+Note: https://drive.google.com/drive/folders/1ILoAqN3V9-_IVMFvyNAcQ_U-2EVEpsIK?usp=sharing
+
 1. Run application (python>=3.8):
 ```sh
 # Deploy MongoDB and Redis queue
