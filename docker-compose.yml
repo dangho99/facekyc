@@ -24,25 +24,24 @@ services:
       - '8081:8081'
 
   redis:
-    container_name: redis-queue
+    container_name: redis_queue
     image: redis:7.0.4
     ports:
       - '6379:6379'
+    volumes:
+      - /var/lib/docker/redis-data:/data
 
   api:
-    image: face-kyc-api:v0.0.1
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
+    image: hoangph3/face-kyc-api:v0.0.1
     container_name: face_kyc-api
-    network_mode: "host"
+    ports:
+      - '8999:8999'
     volumes:
       - /var/lib/docker/face-kyc-api/ckpt/:/app/ckpt/
-    ports:
-    - "9980:9980"
     depends_on:
       - redis
 
 volumes:
   mongo-data:
     driver: local
+
