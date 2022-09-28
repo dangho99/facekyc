@@ -27,6 +27,17 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
     user.config['DEBUG'] = debug
 
     r = redis.Redis(host=SystemEnv.host, port=6379, db=0)
+    connected = False
+    while not connected:
+        try:
+            r.ping()
+            connected = True
+            print("Successfully connected to Redis at {}:6379".format(SystemEnv.host))
+        except:
+            connected = False
+            print("Redis connection error at {}:6379".format(SystemEnv.host))
+            time.sleep(30)
+
     current_time = int(time.time())
     r.set("training_version", current_time)
     r.set("serving_version", current_time)
