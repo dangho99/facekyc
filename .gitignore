@@ -7,11 +7,19 @@ __pycache__/
 *.so
 *.h5
 *.ipynb
+.dockerignore
+Dockerfile
+install.md
+payload.json
+gen_payload.py
+
 
 # directory
 .idea
+face_recognition/
 database/
 ckpt/
+data/
 
 # Distribution / packaging
 .Python
