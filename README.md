@@ -255,7 +255,7 @@ docker restart face_kyc-api
 
 ## 4. Test API
 
-Để test các api được cấp có thể dùng Postman hoặc lệnh `curl`:
+Để test các api được cấp có thể dùng Postman hoặc lệnh `curl`, mặc định sử dụng ip là `localhost`, nếu sử dụng ip local thì cần sửa lại ip tương ứng trong endpoint.
 
 ### 4.1. API đăng ký
 
