@@ -1,9 +1,0 @@
-gateway.py
-gen_payload.py
-payload.json
-install.md
-data/
-database/
-Dockerfile_dlib
-docker-compose-dlib.yml
-docker-compose.yml
