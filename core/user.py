@@ -65,18 +65,28 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             return make_response(jsonify({
                 "message": "Invalid format, address_email or id_passport not found"
             }), 400)
-
+        
         # get images
         images = data.get("images", [])
+        if not isinstance(images, list):
+            return make_response(jsonify({
+                "message": "Invalid format, please provide list of images"
+            }), 400)
 
         if len(images) > 0:
-            responses = requests.post(url=SystemEnv.serving_host, json=images)
-            if responses.status_code == 200:
-                responses = json.loads(responses.text)
-            else:
+            try:
+                responses = requests.post(url=SystemEnv.serving_host, json=images)
+                if responses.status_code == 200:
+                    responses = json.loads(responses.text)
+                else:
+                    responses = {}
+                connected = True
+            except:
                 responses = {}
+                connected = False
         else:
             responses = {}
+            connected = False
 
         # generate unique user_id
         user_id = md5("{}_{}".format(id_passport, address_email))
@@ -130,7 +140,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         save_logs(data=log, collection_name="register_logs")
 
         return make_response(jsonify({
-            "message": message
+            "message": message,
+            "connected": connected
         }), 200)
 
     @user.route('/api/user/pattern', methods=['PUT'])
@@ -204,17 +215,23 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
         close_db()
 
-        return jsonify(responses)
+        return jsonify({
+            'responses': responses,
+            'ok': ok
+        })
 
     @user.route('/api/user/pattern', methods=['DELETE'])
     def api_reset_pattern():
         data = request.get_json()
-        user_id = data.get("user_id")
+        address_email = data.get("zcfg_requester_address_email", "")
+        id_passport = data.get("zcfg_requester_id_passport", "")
 
-        if not user_id:
+        if (not address_email) or (not id_passport):
             return make_response(jsonify({
-                "message": "Invalid format, user_id not found",
+                "message": "Invalid format, address_email or id_passport not found"
             }), 400)
+
+        user_id = md5("{}_{}".format(id_passport, address_email))
 
         collection = connect_db("customers")
         exist_user = collection.find_one({"user_id": user_id})
@@ -227,7 +244,9 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         close_db()
 
         return make_response(jsonify({
-            "message": "Delete success"
+            "message": "Delete success",
+            "email": address_email,
+            "id_passport": id_passport
         }), 200)
 
     @user.route('/api/user/monitor', methods=['GET', 'POST'])
