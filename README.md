@@ -39,10 +39,9 @@ Test:
 ```sh
 docker -v
 ```
-Thấy hiện phiên bản docker là thành công, ví dụ:
-```
-Docker version 20.10.18, build b40c2f6
-```
+Thấy hiện phiên bản docker là thành công:
+
+![](images/docker-version.png)
 
 ### 2.2 Docker Compose
 Tải docker-compose binary file:
@@ -61,10 +60,9 @@ Test:
 ```sh
 docker-compose -v
 ```
-Thấy hiện phiên bản docker-compose là thành công, ví dụ:
-```
-Docker Compose version v2.4.1
-```
+Thấy hiện phiên bản docker-compose là thành công:
+
+![](images/docker-compose-version.png)
 
 ## 3. Triển khai backend
 
@@ -72,6 +70,7 @@ Docker Compose version v2.4.1
 ```
 docker pull hoangph3/face-kyc-api:v0.0.1
 ```
+![](images/pull-image.png)
 
 ### 3.2. Tạo file `docker-compose.yml`
 ```yaml
@@ -135,44 +134,25 @@ Có thể đổi username, password của service mongo để  đảm bảo an t
 ```
 docker-compose up -d
 ```
+![](images/run-docker-compose.png)
+
 Kiểm tra các image và container:
 ```sh
 docker images
 ```
-```
-REPOSITORY              TAG           IMAGE ID       CREATED         SIZE
-hoangph3/face-kyc-api   v0.0.1        665a0e47d1a0   2 hours ago     308MB
-redis                   7.0.4         2460522297a1   3 weeks ago     117MB
-mongo                   6.0.1         d34d21a9eb5b   4 weeks ago     693MB
-mongo-express           1.0.0-alpha   2d2fb2cabc8f   11 months ago   136MB
-```
+![](images/docker-images.png)
 ```sh
 docker ps
 ```
-```
-CONTAINER ID   IMAGE                          COMMAND                  CREATED       STATUS       PORTS                      NAMES
-65c679f80f47   hoangph3/face-kyc-api:v0.0.1   "python main.py"         2 hours ago   Up 2 hours   0.0.0.0:8999->8999/tcp     face_kyc-api
-88cb4b1f3016   mongo-express:1.0.0-alpha      "tini -- /docker-ent…"   2 hours ago   Up 2 hours   0.0.0.0:8081->8081/tcp     mongo_express
-9be15cda3a18   redis:7.0.4                    "docker-entrypoint.s…"   2 hours ago   Up 2 hours   0.0.0.0:6379->6379/tcp     redis_queue
-e555c500139f   mongo:6.0.1                    "docker-entrypoint.s…"   2 hours ago   Up 2 hours   0.0.0.0:27017->27017/tcp   mongo_database
-```
+![](images/docker-container.png)
 
 Kiểm tra log của backend:
 ```
 docker logs -f face_kyc-api
 ```
-```
-Load model failed from ckpt/v0.0.1, because: Error in faiss::FileIOReader::FileIOReader(const char*) at /project/faiss/faiss/impl/io.cpp:67: Error: 'f' failed: could not open ckpt/v0.0.1/model.index for reading: No such file or directory
- * Serving Flask app 'core.user' (lazy loading)
- * Environment: production
-   WARNING: This is a development server. Do not use it in a production deployment.
-   Use a production WSGI server instead.
- * Debug mode: on
- * Running on http://localhost:8999/ (Press CTRL+C to quit)
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 123-096-696
-```
+
+![](images/docker-log-backend.png)
+
 Trong phần log có thấy thông báo: `No such file or directory`, tuy nhiên chưa cần quan tâm vì sau khi deploy thì chưa có model indexing. Sau bước này có thể  đến mục 4. để test api luôn.
 
 Trường hợp kiểm tra log backend mà không có gì tức là service chưa chạy được, do port bị chặn bởi iptables. Có hai cách:
@@ -195,15 +175,21 @@ iptables -A OUTPUT -o lo -j ACCEPT
 iptables-save > /etc/sysconfig/iptables
 systemctl restart iptables
 ```
+
+Kiểm tra lại rule iptables:
+```sh
+iptables -S
+```
+
 Sửa ip `localhost` mặc định sang IP local tĩnh ở trong container backend:
 ```sh
 # Exec vào bên trong container
 docker exec -it face_kyc-api bash
 ```
 Sau khi exec vào thành công thì ta thấy như sau:
-```sh
-root@65c679f80f47:/app#
-```
+
+![](images/exec-container.png)
+
 List các thư mục và file hiện có trong container:
 ```sh
 root@65c679f80f47:/app# ls
@@ -252,6 +238,8 @@ Tại phía máy host, restart lại container backend `face_kyc-api`:
 ```
 docker restart face_kyc-api
 ```
+
+Lưu ý trường hợp mà sửa username và password của mongo thì cũng cần phải sửa lại hai trường `admin_user` và `admin_password` trong file `env.json`, sau đó restart lại container.
 
 ## 4. Test API
 
@@ -315,12 +303,9 @@ Test với lệnh `curl`:
 ```sh
 curl -d @register.json -X POST http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
 ```
-```json
-{
-  "connected": false, 
-  "message": "Register success, but empty images"
-}
-```
+
+![](images/register-empty-images.png)
+
 Trong đó: `connected` là thông báo kết nối từ backend kotora đến AI Box, do chưa có kết nối nên báo false, message đăng ký thành công nhưng trường `images` không chứa ảnh.
 
 Sửa lại file `register.json` với nội dung:
@@ -344,11 +329,8 @@ Test với lệnh `curl`:
 ```sh
 curl -d @register.json -X POST http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
 ```
-```json
-{
-  "message": "Invalid format, address_email or id_passport not found"
-}
-```
+
+![](images/register-invalid-format.png)
 
 Backend yêu cầu thông tin 2 trường: `zcfg_requester_address_email` và `zcfg_requester_id_passport` để tạo `user_id` cho người dùng theo công thức: `hash_md5(<cccd/cmnd>+"_"+<email>)`. Vì payload trên không có 2 trường này nên báo lỗi.
 
@@ -375,12 +357,9 @@ Test với lệnh `curl`:
 ```sh
 curl -d @register.json -X POST http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
 ```
-```json
-{
-  "connected": false, 
-  "message": "Update success, but invalid images"
-}
-```
+
+![](images/register-update.png)
+
 Update thông tin người dùng thành công, `invalid images` là do người dùng chưa có ảnh, hoặc ảnh không hợp lệ (AI box sẽ tiến hành verify), vấn đề này sau khi ghép nối với AI Box sẽ đánh giá sau.
 
 
@@ -502,52 +481,9 @@ Test với lệnh `curl`:
 ```sh
 curl -d @monitor.json -X GET http://172.16.36.43:8999/api/user/monitor -H "Content-Type: application/json"
 ```
-```json
-{
-    "register_logs": [
-    {
-      "attachments": "", 
-      "images": [], 
-      "message": "Register success, but empty images", 
-      "method": "add", 
-      "timestamp": "2022-09-28 18:09:05", 
-      "user_id": "011c8949deabef50ea0cafad7690ae78", 
-      "zcfg_approver_address_email": "superadmin@telehouse.com", 
-      "zcfg_approver_comboname": "administrator", 
-      "zcfg_requester_access_purpose": "tour", 
-      "zcfg_requester_address_email": "hoang@gmail.com", 
-      "zcfg_requester_comboname": "hoang", 
-      "zcfg_requester_id_passport": "038585963", 
-      "zcfg_requester_organization": "kotora", 
-      "zcfg_requester_phone_number": "0391408249", 
-      "zend_date": "2022-09-01 10:00:00", 
-      "zstart_date": "2022-09-01 08:00:00", 
-      "ztask": "tour", 
-      "zusing": true
-    }, 
-    {
-      "attachments": "", 
-      "images": [], 
-      "message": "Update success, but invalid images", 
-      "method": "edit", 
-      "timestamp": "2022-09-28 18:09:08", 
-      "user_id": "011c8949deabef50ea0cafad7690ae78", 
-      "zcfg_approver_address_email": "superadmin@telehouse.com", 
-      "zcfg_approver_comboname": "administrator", 
-      "zcfg_requester_access_purpose": "tour", 
-      "zcfg_requester_address_email": "hoang@gmail.com", 
-      "zcfg_requester_comboname": "hoang", 
-      "zcfg_requester_id_passport": "038585963", 
-      "zcfg_requester_organization": "kotora", 
-      "zcfg_requester_phone_number": "0391408249", 
-      "zend_date": "2022-09-01 10:00:00", 
-      "zstart_date": "2022-09-01 08:00:00", 
-      "ztask": "tour", 
-      "zusing": true
-    }],
-  "verify_logs": []
-}
-```
+
+![](images/monitor.png)
+
 
 Ở đây giá trị trường method là add (register) hoặc là edit (update), verify logs không có.
 
@@ -587,11 +523,9 @@ Test với lệnh `curl`:
 ```sh
 curl -d @delete.json -X DELETE http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
 ```
-```json
-{
-  "message": "Invalid format, address_email or id_passport not found"
-}
-```
+
+![](images/delete-user-invalid-format.png)
+
 Lỗi do không đủ thông tin để xóa.
 
 Sửa file `delete.json` với nội dung:
@@ -605,21 +539,14 @@ Test với lệnh `curl`:
 ```sh
 curl -d @delete.json -X DELETE http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
 ```
-```json
-{
-  "email": "hoang@gmail.com", 
-  "id_passport": "038585963", 
-  "message": "Delete success"
-}
-```
+
+![](images/delete-user.png)
 
 Test với lệnh `curl`:
 ```sh
 curl -d @delete.json -X DELETE http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
 ```
-```json
-{
-  "message": "User is invalid"
-}
-```
+
+![](images/delete-user-not-exist.png)
+
 Lỗi do user không tồn tại.
