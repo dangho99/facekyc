@@ -175,13 +175,13 @@ Xem các biến môi trường trong file `env.json`:
 ```sh
 root@65c679f80f47:/app# cat env.json 
 {
-  "host": "172.16.36.43",
+  "host": "localhost",
   "k": 10,
   "n_dims": 512,
   "matched_score": 0.95,
   "duplicate_score": 0.99,
   "checkpoint_path": "ckpt/v0.0.1",
-  "serving_host": "http://172.16.36.43:8501/api/user/pattern",
+  "serving_host": "http://localhost:8501/api/user/pattern",
   "admin_user": "admin",
   "admin_password": "P4ssW0rD"
 }
