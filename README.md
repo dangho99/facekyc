@@ -155,7 +155,7 @@ docker logs -f face_kyc-api
 
 Trong phần log có thấy thông báo: `No such file or directory`, tuy nhiên chưa cần quan tâm vì sau khi deploy thì chưa có model indexing. Sau bước này có thể  đến mục 4. để test api luôn.
 
-Trường hợp kiểm tra log backend mà không có gì tức là service chưa chạy được, lúc này cần cấu hình ip tĩnh như sau:
+Trường hợp kiểm tra log backend mà không có gì tức là service chưa chạy được (do docker sẽ lấy ip localhost của container, không phải ip localhost của máy host), lúc này cần cấu hình ip tĩnh như sau:
 
 Sửa ip `localhost` mặc định sang IP local tĩnh ở trong container backend:
 ```sh
