@@ -155,31 +155,7 @@ docker logs -f face_kyc-api
 
 Trong phần log có thấy thông báo: `No such file or directory`, tuy nhiên chưa cần quan tâm vì sau khi deploy thì chưa có model indexing. Sau bước này có thể  đến mục 4. để test api luôn.
 
-Trường hợp kiểm tra log backend mà không có gì tức là service chưa chạy được, do port bị chặn bởi iptables. Có hai cách:
-
-Cách 1:
-Cấu hình iptables cho phép traffic qua ip loopback (127.0.0.1, localhost):
-```sh
-iptables -A INPUT -i lo -j ACCEPT
-iptables -A OUTPUT -o lo -j ACCEPT
-iptables-save > /etc/sysconfig/iptables
-systemctl restart iptables
-```
-
-Cách 2:
-Cấu hình iptables cho phép traffic qua các port service với IP local:
-```sh
-iptables -A INPUT -p tcp -m multiport --dports 6379,8081,8999,27017,8501 -j ACCEPT
-iptables -A OUTPUT -p tcp -m tcp -m multiport --dports 6379,8081,8999,27017,8501 -j ACCEPT
-iptables -A OUTPUT -o lo -j ACCEPT
-iptables-save > /etc/sysconfig/iptables
-systemctl restart iptables
-```
-
-Kiểm tra lại rule iptables:
-```sh
-iptables -S
-```
+Trường hợp kiểm tra log backend mà không có gì tức là service chưa chạy được, lúc này cần cấu hình ip tĩnh như sau:
 
 Sửa ip `localhost` mặc định sang IP local tĩnh ở trong container backend:
 ```sh
