@@ -108,6 +108,7 @@ services:
       - /var/lib/docker/redis-data:/data
 
   api:
+    # build: .
     image: hoangph3/face-kyc-api:v0.0.1
     container_name: face_kyc-api
     ports:
@@ -116,6 +117,7 @@ services:
       - /var/lib/docker/face-kyc-api/ckpt/:/app/ckpt/
     depends_on:
       - redis
+    network_mode: host
 
 volumes:
   mongo-data:
