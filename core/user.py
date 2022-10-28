@@ -1,4 +1,5 @@
 from flask import Flask, make_response, request, jsonify
+from flask_cors import CORS
 from threading import Thread, Lock
 from tqdm import tqdm
 import requests
@@ -24,6 +25,7 @@ model = NeighborSearch.load(model_dir)
 
 def run(api_host='0.0.0.0', api_port=8999, debug=True):
     user = Flask(__name__)
+    CORS(user)
     user.config['DEBUG'] = debug
 
     r = redis.Redis(host=SystemEnv.host, port=6379, db=0)
@@ -61,6 +63,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         # validate data
         address_email = data.get("zcfg_requester_address_email", "")
         id_passport = data.get("zcfg_requester_id_passport", "")
+        username = data.get("zcfg_requester_comboname", "")
+        phonenumber = data.get("zcfg_requester_phone_number", "")
         if (not address_email) or (not id_passport):
             return make_response(jsonify({
                 "message": "Invalid format, address_email or id_passport not found"
@@ -98,7 +102,12 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         if len(data["encodings"]) > 0:
             for encoding in data["encodings"]:
                 r.rpush("training_data", json.dumps({
-                    "metadata": {"user_id": user_id},
+                    "metadata": {"user_id": json.dumps({
+                        "name": username,
+                        "phone": phonenumber,
+                        "email": address_email,
+                        "id": id_passport
+                    })},
                     "encoding": encoding
                 }))
 
@@ -180,34 +189,19 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                 for i, pred in enumerate(preds):
                     if not pred["user_id"]:
                         continue
-
-                    record = collection.find_one({"user_id": pred["user_id"]})
-                    if not record:
-                        pred["user_id"] = "<invalid>"
-                        continue
-
-                    # get more info
-                    for k, v in d.items():
-                        if k != "encodings":
-                            pred[k] = v[i]
-
-                    for k, v in record.items():
-                        if k in ['zcfg_requester_comboname', 'zcfg_requester_phone_number',
-                                 'zcfg_requester_address_email', 'zcfg_requester_id_passport']:
-                            pred[k] = v
-
+                    try:
+                        pred["user_id"] = json.loads(pred["user_id"])
+                    except:
+                        pass
                     # save logs
                     pred.update({
                         "timestamp": get_timestamp()
                     })
                     save_logs(data=pred, collection_name="verify_logs")
                     preds[i] = pred
-
-                for pred in preds:
-                    if "_id" in pred:
-                        del pred["_id"]
                 responses.append(preds)
             ok = True
+
         except Exception as e:
             print('predict data got error: {}'.format(str(e)))
             responses = []
@@ -288,4 +282,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             time.sleep(interval)
 
     Thread(target=auto_train).start()
-    user.run(host=api_host, port=api_port)
+    user.run(
+        host=api_host,
+        port=api_port,
+        ssl_context=("./certs/cert.pem", "./certs/key.pem")
+    )
