@@ -187,7 +187,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             for i in tqdm(range(len(data)), desc="Predict"):
                 preds = model.predict(data[i]['encodings'])
                 data[i]["predictions"] = preds
-                collection.insert_many(data[i])
+            collection.insert_many(data)
             close_db()
             responses = data
             ok = True

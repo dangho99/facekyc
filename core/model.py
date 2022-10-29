@@ -75,7 +75,7 @@ class NeighborSearch:
         for ds, ids in zip(distances, indexes):
             res = []
             for dist, idx in zip(ds, ids):
-                res.append({"score": round(float(dist), 4), **self.metadata[idx]})
+                res.append({"score": float(dist), **self.metadata[idx]})
             result.append(res)
         return result
 
