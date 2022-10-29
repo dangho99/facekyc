@@ -6,7 +6,8 @@ import time
 import os
 
 from keeper.environments import SystemEnv
-
+from util.logger import get_logger
+logger = get_logger("logs")
 
 class NeighborSearch:
     def __init__(self):
@@ -82,7 +83,7 @@ class NeighborSearch:
         faiss.write_index(self.indexing, os.path.join(path, "model.index"))
         with open(os.path.join(path, "model.meta"), 'w', encoding='utf-8') as f:
             json.dump(self.metadata, f)
-        print("Save model success to: {}".format(path))
+        logger.info("Save model success to: {}".format(path))
 
     @staticmethod
     def load(path):
@@ -91,7 +92,7 @@ class NeighborSearch:
             model.indexing = faiss.read_index(os.path.join(path, "model.index"))
             with open(os.path.join(path, "model.meta")) as f:
                 model.metadata = json.load(f)
-            print("Load model success from: {}".format(path))
+            logger.info("Load model success from: {}".format(path))
         except Exception as e:
-            print("Load model failed from {}, because: {}".format(path, str(e)))
+            logger.info("Load model failed from {}, because: {}".format(path, str(e)))
         return model

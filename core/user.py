@@ -8,19 +8,20 @@ import json
 import time
 import os
 
-from util.logger import get_timestamp
+from util.logger import get_timestamp, get_logger
 from util.database import connect_db, close_db
 from keeper.environments import SystemEnv
 from core.model import NeighborSearch
 from util.hash import md5
 
 requests.packages.urllib3.disable_warnings()
+logger = get_logger("logs")
 
 # init model directory
 model_dir = SystemEnv.checkpoint_path
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
-    print("Create checkpoint in {}".format(model_dir))
+    logger.info("Create checkpoint in {}".format(model_dir))
 model = NeighborSearch.load(model_dir)
 
 
@@ -35,10 +36,10 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         try:
             r.ping()
             connected = True
-            print("Successfully connected to Redis at {}:6379".format(SystemEnv.host))
+            logger.info("Successfully connected to Redis at {}:6379".format(SystemEnv.host))
         except:
             connected = False
-            print("Redis connection error at {}:6379".format(SystemEnv.host))
+            logger.info("Redis connection error at {}:6379".format(SystemEnv.host))
             time.sleep(30)
 
     current_time = int(time.time())
@@ -85,7 +86,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                     responses = {}
                 connected = True
             except Exception as e:
-                print(e)
+                logger.info('Generate embedding %s got error: %s' % (str(images), str(e)))
                 responses = {}
                 connected = False
         else:
@@ -182,21 +183,18 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
         data = request.get_json()
         try:
-            responses = []
             collection = connect_db("verify_logs")
-            for d in tqdm(data, desc="Predict"):
-                preds = model.predict(d['encodings'])
-                collection.insert_many(preds)
-                responses.append(preds)
+            for i in tqdm(range(len(data)), desc="Predict"):
+                preds = model.predict(data[i]['encodings'])
+                data[i]["predictions"] = preds
+                collection.insert_many(data[i])
             close_db()
+            responses = data
             ok = True
-
         except Exception as e:
-            print('predict data got error: {}'.format(str(e)))
+            logger.info('Predict data %s got error: %s' % (str(data), str(e)))
             responses = []
             ok = False
-
-        close_db()
 
         return jsonify({
             'responses': responses,
