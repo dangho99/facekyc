@@ -8,7 +8,7 @@ __pycache__/
 *.h5
 *.ipynb
 .dockerignore
-Dockerfile
+# Dockerfile
 install.md
 payload.json
 gen_payload.py
