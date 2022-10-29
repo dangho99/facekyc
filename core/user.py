@@ -228,7 +228,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         }), 200)
 
     @user.route('/api/user/monitor', methods=['PUT'])
-    def api_monitor_user():
+    def api_verify_user():
         """
         api: add verify logs
         """
