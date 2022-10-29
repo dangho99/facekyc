@@ -14,6 +14,7 @@ from keeper.environments import SystemEnv
 from core.model import NeighborSearch
 from util.hash import md5
 
+requests.packages.urllib3.disable_warnings()
 
 # init model directory
 model_dir = SystemEnv.checkpoint_path
@@ -77,13 +78,14 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
         if len(images) > 0:
             try:
-                responses = requests.post(url=SystemEnv.serving_host, json=images)
+                responses = requests.post(url=SystemEnv.serving_host, json=images, verify=False)
                 if responses.status_code == 200:
                     responses = json.loads(responses.text)
                 else:
                     responses = {}
                 connected = True
-            except:
+            except Exception as e:
+                print(e)
                 responses = {}
                 connected = False
         else:

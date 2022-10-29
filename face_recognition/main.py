@@ -4,9 +4,9 @@ import face_recognition
 import numpy as np
 import requests
 import json
-
 import dataio
 
+requests.packages.urllib3.disable_warnings()
 face = Blueprint('face', __name__)
 
 
@@ -72,7 +72,7 @@ def api_verify_pattern():
 
     # POST request
     url = "https://{}:{}/api/user/pattern".format("localhost", 8999)
-    r = requests.put(url=url, json=payload)
+    r = requests.put(url=url, json=payload, verify=False)
     response = make_response(jsonify(json.loads(r.text)), r.status_code)
     return response
 
