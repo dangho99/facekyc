@@ -11,10 +11,14 @@ from keeper.environments import SystemEnv
 
 class NeighborSearch:
     def __init__(self):
-        self.matched_score = SystemEnv.matched_score
         self.duplicate_score = SystemEnv.duplicate_score
         self.k = SystemEnv.k
-        self.indexing = faiss.IndexFlatIP(SystemEnv.n_dims)
+        if SystemEnv.distance_metric == "cosine":
+            self.indexing = faiss.IndexFlatIP(SystemEnv.n_dims)
+        if SystemEnv.distance_metric == "euclidean":
+            self.indexing = faiss.IndexFlatL2(SystemEnv.n_dims)
+        else:
+            raise ValueError("Metric not found!")
         self.metadata = []
 
     def fit(self, data):
@@ -66,23 +70,13 @@ class NeighborSearch:
             return []
         encodings = np.array(encodings, dtype=np.float32)
         encodings = encodings / np.linalg.norm(encodings, axis=1, keepdims=True)
-        ranges, distances, indexes = self.indexing.range_search(encodings, self.matched_score)
+        distances, indexes = self.indexing.search(encodings, self.k)
         result = []
-        for i in range(len(encodings)):
-            ds = distances[ranges[i]:ranges[i+1]]
-            ids = indexes[ranges[i]:ranges[i+1]]
-            if len(ds) > 1:
-                ds, ids = zip(*sorted(zip(ds, ids), key=lambda x: x[0], reverse=True))
-            if not len(ds):
-                result.append({"user_id": "", "score": 0.})
-                continue
-            stats = defaultdict(list)
+        for ds, ids in zip(distances, indexes):
+            res = []
             for dist, idx in zip(ds, ids):
-                stats[self.metadata[idx]['user_id']].append(dist)
-            for k, v in stats.items():
-                stats[k] = float(np.sum(v) / (len(v) + 1e-9))
-            user_id, score = max(stats.items(), key=lambda x: x[1])
-            result.append({"user_id": user_id, "score": round(score, 4)})
+                res.append({"score": round(float(dist), 4), **self.metadata[idx]})
+            result.append(res)
         return result
 
     def save(self, path):

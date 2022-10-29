@@ -32,7 +32,7 @@ services:
       - /var/lib/docker/redis-data:/data
 
   api:
-    # build: .
+    build: .
     image: hoangph3/face-kyc-api:v0.0.1
     container_name: face_kyc-api
     ports:

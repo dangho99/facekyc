@@ -101,15 +101,20 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         # push redis to indexing
         if len(data["encodings"]) > 0:
             for encoding in data["encodings"]:
-                r.rpush("training_data", json.dumps({
-                    "metadata": {"user_id": json.dumps({
-                        "name": username,
-                        "phone": phonenumber,
-                        "email": address_email,
-                        "id": id_passport
-                    })},
-                    "encoding": encoding
-                }))
+                r.rpush("training_data",
+                    json.dumps(
+                        {
+                            "metadata": {
+                                "user_id": user_id,
+                                "name": username,
+                                "phone": phonenumber,
+                                "email": address_email,
+                                "passport": id_passport
+                            },
+                            "encoding": encoding
+                        }
+                    )
+                )
 
         collection = connect_db("customers")
         exist_user = collection.find_one({"user_id": user_id})
@@ -173,8 +178,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             model = NeighborSearch.load(model_dir)
             r.set("serving_version", r.get("training_version"))
 
-        collection = connect_db("customers")
-
         data = request.get_json()
         try:
             responses = []
@@ -189,10 +192,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                 for i, pred in enumerate(preds):
                     if not pred["user_id"]:
                         continue
-                    try:
-                        pred["user_id"] = json.loads(pred["user_id"])
-                    except:
-                        pass
                     # save logs
                     pred.update({
                         "timestamp": get_timestamp()
