@@ -268,7 +268,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             lock.release()
 
             r.set("training_version", int(time.time()))
-            time.sleep(interval)
 
     Thread(target=auto_train).start()
     user.run(
