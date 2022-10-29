@@ -15,7 +15,7 @@ gen_payload.py
 
 # directory
 .idea
-face_recognition/
+# face_recognition/
 database/
 ckpt/
 data/

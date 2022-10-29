@@ -34,7 +34,7 @@ services:
   api:
     build: .
     image: hoangph3/face-kyc-api:v0.0.1
-    container_name: face_kyc-api
+    container_name: face_kyc_api
     ports:
       - '8999:8999'
     volumes:
