@@ -14,7 +14,7 @@ class NeighborSearch:
         self.k = SystemEnv.k
         if SystemEnv.distance_metric == "cosine":
             self.indexing = faiss.IndexFlatIP(SystemEnv.n_dims)
-        if SystemEnv.distance_metric == "euclidean":
+        elif SystemEnv.distance_metric == "euclidean":
             self.indexing = faiss.IndexFlatL2(SystemEnv.n_dims)
         else:
             raise ValueError("Metric not found!")

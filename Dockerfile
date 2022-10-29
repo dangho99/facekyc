@@ -2,7 +2,14 @@ FROM python:3.8-slim-buster
 
 WORKDIR /app
 
-COPY . . 
+COPY core /app/core
+COPY certs /app/certs
+COPY keeper /app/keeper
+COPY util /app/util
+
+COPY env.json /app/env.json
+COPY main.py /app/main.py
+COPY requirements.txt /app/requirements.txt
 
 RUN apt-get update -y
 RUN apt-get install nano telnet curl -y

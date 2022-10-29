@@ -7,4 +7,4 @@ redis==3.5.3
 tqdm==4.46.0
 pymongo==4.1.1
 flask-cors==3.0.10
-pyOpenSSL
+pyOpenSSL==22.1.0
