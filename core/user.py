@@ -8,7 +8,7 @@ import json
 import time
 import os
 
-from util.logger import save_logs, get_timestamp
+from util.logger import get_timestamp
 from util.database import connect_db, close_db
 from keeper.environments import SystemEnv
 from core.model import NeighborSearch
@@ -63,8 +63,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         # validate data
         address_email = data.get("zcfg_requester_address_email", "")
         id_passport = data.get("zcfg_requester_id_passport", "")
-        username = data.get("zcfg_requester_comboname", "")
-        phonenumber = data.get("zcfg_requester_phone_number", "")
         if (not address_email) or (not id_passport):
             return make_response(jsonify({
                 "message": "Invalid format, address_email or id_passport not found"
@@ -106,10 +104,10 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                         {
                             "metadata": {
                                 "user_id": user_id,
-                                "name": username,
-                                "phone": phonenumber,
-                                "email": address_email,
-                                "passport": id_passport
+                                "zcfg_requester_comboname": data.get("zcfg_requester_comboname", ""),
+                                "zcfg_requester_phone_number": data.get("zcfg_requester_phone_number", ""),
+                                "zcfg_requester_address_email": address_email,
+                                "zcfg_requester_id_passport": id_passport
                             },
                             "encoding": encoding
                         }
@@ -151,7 +149,9 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             "message": message,
             "method": method
         })
-        save_logs(data=log, collection_name="register_logs")
+        collection = connect_db("register_logs")
+        collection.insert_one(log)
+        close_db()
 
         return make_response(jsonify({
             "message": message,
@@ -181,24 +181,12 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         data = request.get_json()
         try:
             responses = []
+            collection = connect_db("verify_logs")
             for d in tqdm(data, desc="Predict"):
                 preds = model.predict(d['encodings'])
-                """
-                preds = [
-                    {"user_id": "", "score": 0.},
-                    ...
-                ]
-                """
-                for i, pred in enumerate(preds):
-                    if not pred["user_id"]:
-                        continue
-                    # save logs
-                    pred.update({
-                        "timestamp": get_timestamp()
-                    })
-                    save_logs(data=pred, collection_name="verify_logs")
-                    preds[i] = pred
+                collection.insert_many(preds)
                 responses.append(preds)
+            close_db()
             ok = True
 
         except Exception as e:
