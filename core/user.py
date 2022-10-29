@@ -183,13 +183,10 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
         data = request.get_json()
         try:
-            collection = connect_db("verify_logs")
-            for i in tqdm(range(len(data)), desc="Predict"):
-                preds = model.predict(data[i]['encodings'])
-                data[i]["predictions"] = preds
-            collection.insert_many(data)
-            close_db()
-            responses = data
+            responses = []
+            for d in tqdm(data, desc="Predict"):
+                preds = model.predict(d['encodings'])
+                responses.append(preds)
             ok = True
         except Exception as e:
             logger.info('Predict data %s got error: %s' % (str(data), str(e)))
@@ -247,6 +244,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             responses[collection_name] = []
             for record in collection.find(data, {"_id": 0}):
                 responses[collection_name].append(record)
+        close_db()
 
         return make_response(jsonify(responses), 200)
 
@@ -257,14 +255,12 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             if not data:
                 time.sleep(interval)
                 continue
-
             lock.acquire()
             data = json.loads(data)
             model = NeighborSearch.load(model_dir)
             model.partial_fit([data])
             model.save(model_dir)
             lock.release()
-
             r.set("training_version", int(time.time()))
 
     Thread(target=auto_train).start()

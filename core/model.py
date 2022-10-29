@@ -2,7 +2,6 @@ from tqdm import tqdm
 import numpy as np
 import faiss
 import json
-import time
 import os
 
 from keeper.environments import SystemEnv
