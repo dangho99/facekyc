@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM hoangph3/face-kyc-api:v0.0.1
 
 WORKDIR /app
 
