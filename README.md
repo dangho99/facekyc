@@ -72,7 +72,7 @@ docker pull hoangph3/face-kyc-api:v0.0.1
 ```
 ![](images/pull-image.png)
 
-### 3.2. Tạo file `docker-compose.yml`
+### 3.2. Tạo file `docker-compose.yml` như sau:
 ```yaml
 version: "3.2"
 
@@ -108,7 +108,7 @@ services:
       - /var/lib/docker/redis-data:/data
 
   api:
-    # build: .
+    build: .
     image: hoangph3/face-kyc-api:v0.0.1
     container_name: face_kyc-api
     ports:
@@ -117,6 +117,7 @@ services:
       - /var/lib/docker/face-kyc-api/ckpt/:/app/ckpt/
     depends_on:
       - redis
+    restart: always
     network_mode: host
 
 volumes:
@@ -178,10 +179,10 @@ Xem các biến môi trường trong file `env.json`:
 root@65c679f80f47:/app# cat env.json 
 {
   "host": "localhost",
-  "k": 10,
+  "k": 5,
   "n_dims": 512,
-  "matched_score": 0.95,
   "duplicate_score": 0.99,
+  "distance_metric": "cosine",
   "checkpoint_path": "ckpt/v0.0.1",
   "serving_host": "http://localhost:8501/api/user/pattern",
   "admin_user": "admin",
@@ -196,10 +197,10 @@ Sau khi sửa thành công:
 ```sh
 {
   "host": "172.16.36.43",
-  "k": 10,
+  "k": 5,
   "n_dims": 512,
-  "matched_score": 0.95,
   "duplicate_score": 0.99,
+  "distance_metric": "cosine",
   "checkpoint_path": "ckpt/v0.0.1",
   "serving_host": "http://172.16.36.43:8501/api/user/pattern",
   "admin_user": "admin",
