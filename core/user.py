@@ -227,7 +227,16 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             "id_passport": id_passport
         }), 200)
 
-    @user.route('/api/user/monitor', methods=['GET', 'POST'])
+    @user.route('/api/user/monitor', methods=['PUT'])
+    def api_monitor_user():
+        """
+        api: add verify logs
+        """
+        data = request.get_json()
+        collection = connect_db("verify_logs")
+        collection.insert_many(data)
+
+    @user.route('/api/user/monitor', methods=['GET'])
     def api_monitor_user():
         data = request.get_json()
         responses = {}
@@ -245,7 +254,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             for record in collection.find(data, {"_id": 0}):
                 responses[collection_name].append(record)
         close_db()
-
         return make_response(jsonify(responses), 200)
 
     def auto_train():

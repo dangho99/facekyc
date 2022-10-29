@@ -70,9 +70,9 @@ def api_verify_pattern():
         }
         payload.append(d)
 
-    # POST request
-    url = "https://{}:{}/api/user/pattern".format("localhost", 8999)
-    r = requests.put(url=url, json=payload, verify=False)
+    # put request
+    r = requests.put(url="https://localhost:8999/api/user/pattern",
+                     json=payload, verify=False)
     response = make_response(jsonify(json.loads(r.text)), r.status_code)
     return response
 
