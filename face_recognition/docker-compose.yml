@@ -3,7 +3,7 @@ version: "3.2"
 services:
   face_recognition:
     build: .
-    image: hoangph3/face_recognition_gateway:v0.0.1
+    image: hoangph3/face-recognition-gateway:v0.0.1
     container_name: face_recognition_gateway
     ports:
       - '8501:8501'
