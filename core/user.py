@@ -11,6 +11,7 @@ import os
 from util.logger import get_timestamp, get_logger
 from util.database import connect_db, close_db
 from keeper.environments import SystemEnv
+from bson import json_util, ObjectId
 from core.model import NeighborSearch
 from util.hash import md5
 
@@ -102,20 +103,10 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         # push redis to indexing
         if len(data["encodings"]) > 0:
             for encoding in data["encodings"]:
-                r.rpush("training_data",
-                    json.dumps(
-                        {
-                            "metadata": {
-                                "user_id": user_id,
-                                "zcfg_requester_comboname": data.get("zcfg_requester_comboname", ""),
-                                "zcfg_requester_phone_number": data.get("zcfg_requester_phone_number", ""),
-                                "zcfg_requester_address_email": address_email,
-                                "zcfg_requester_id_passport": id_passport
-                            },
-                            "encoding": encoding
-                        }
-                    )
-                )
+                r.rpush("training_data", json.dumps({
+                    "metadata": {"user_id": user_id},
+                    "encoding": encoding
+                }))
 
         collection = connect_db("customers")
         exist_user = collection.find_one({"user_id": user_id})
@@ -181,17 +172,50 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             model = NeighborSearch.load(model_dir)
             r.set("serving_version", r.get("training_version"))
 
+        collection = connect_db("customers")
+        collection_logs = connect_db("verify_logs")
+
         data = request.get_json()
         try:
             responses = []
             for d in tqdm(data, desc="Predict"):
                 preds = model.predict(d['encodings'])
-                responses.append(preds)
+                new_preds = []
+                """
+                preds = [
+                    {"user_id": "", "score": 0.},
+                    ...
+                ]
+                """
+                for i, pred in enumerate(preds):
+                    if not pred["user_id"]:
+                        continue
+                    record = collection.find({"user_id": pred["user_id"]},
+                                             {"_id": 0})[0]
+                    if not record:
+                        pred["user_id"] = "<invalid>"
+                        continue
+                    # get more info
+                    for k, v in d.items():
+                        if k != "encodings":
+                            pred[k] = v[i]
+                    for field in ['zcfg_requester_comboname', 'zcfg_requester_phone_number',
+                              'zcfg_requester_address_email', 'zcfg_requester_id_passport']:
+                        pred[field] = record[field]
+                    pred = {k: v for k, v in pred.items() if k != '_id'}
+                    # save logs
+                    pred["timestamp"] = get_timestamp()
+                    collection_logs.insert_one(pred)
+                    pred = {k: v for k, v in pred.items() if k != '_id'}
+                    new_preds.append(pred)
+                responses.append(new_preds)
             ok = True
         except Exception as e:
             logger.info('Predict data %s got error: %s' % (str(data), str(e)))
             responses = []
             ok = False
+
+        close_db()
 
         return jsonify({
             'responses': responses,
@@ -226,15 +250,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             "email": address_email,
             "id_passport": id_passport
         }), 200)
-
-    @user.route('/api/user/monitor', methods=['PUT'])
-    def api_verify_user():
-        """
-        api: add verify logs
-        """
-        data = request.get_json()
-        collection = connect_db("verify_logs")
-        collection.insert_many(data)
 
     @user.route('/api/user/monitor', methods=['GET'])
     def api_monitor_user():

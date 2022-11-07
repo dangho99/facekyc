@@ -24,6 +24,7 @@ class SystemEnv:
             self.__host: str = env_vars["host"]
             self.__k: int = env_vars["k"]
             self.__n_dims: int = env_vars["n_dims"]
+            self.__matched_score: float = env_vars["matched_score"]
             self.__duplicate_score: float = env_vars["duplicate_score"]
             self.__distance_metric: str = env_vars["distance_metric"]
             self.__checkpoint_path: str = env_vars["checkpoint_path"]
@@ -42,6 +43,10 @@ class SystemEnv:
     @ClassProperty
     def n_dims(cls):
         return cls.get_instance().__n_dims
+    
+    @ClassProperty
+    def matched_score(cls):
+        return cls.get_instance().__matched_score
 
     @ClassProperty
     def distance_metric(cls):
