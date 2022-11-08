@@ -180,7 +180,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             responses = []
             for d in tqdm(data, desc="Predict"):
                 preds = model.predict(d['encodings'])
-                new_preds = []
                 """
                 preds = [
                     {"user_id": "", "score": 0.},
@@ -203,12 +202,13 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                               'zcfg_requester_address_email', 'zcfg_requester_id_passport']:
                         pred[field] = record[field]
                     pred = {k: v for k, v in pred.items() if k != '_id'}
+
                     # save logs
                     pred["timestamp"] = get_timestamp()
                     collection_logs.insert_one(pred)
                     pred = {k: v for k, v in pred.items() if k != '_id'}
-                    new_preds.append(pred)
-                responses.append(new_preds)
+                    preds[i] = pred
+                responses.append(preds)
             ok = True
         except Exception as e:
             logger.info('Predict data %s got error: %s' % (str(data), str(e)))
