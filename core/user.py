@@ -1,5 +1,6 @@
 from flask import Flask, make_response, request, jsonify
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 from threading import Thread, Lock
 from tqdm import tqdm
 import requests
@@ -30,6 +31,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
     user = Flask(__name__)
     CORS(user)
     user.config['DEBUG'] = debug
+    socketio = SocketIO(user)
+    socketio.init_app(user, cors_allowed_origins="*", logger=True, engineio_logger=True)
 
     r = redis.Redis(host=SystemEnv.host, port=6379, db=0)
     connected = False
@@ -216,7 +219,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             ok = False
 
         close_db()
-
+        #push data to socket
+        socketio.emit("data_login", {"data": responses}, namespace='/data_login')
         return jsonify({
             'responses': responses,
             'ok': ok
@@ -287,8 +291,4 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             r.set("training_version", int(time.time()))
 
     Thread(target=auto_train).start()
-    user.run(
-        host=api_host,
-        port=api_port,
-        ssl_context=("./certs/cert.pem", "./certs/key.pem")
-    )
+    socketio.run(user, host=api_host, port=api_port, debug=True, keyfile='./certs/key.pem', certfile='./certs/cert.pem')
