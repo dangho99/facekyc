@@ -66,78 +66,23 @@ Thấy hiện phiên bản docker-compose là thành công:
 
 ## 3. Triển khai backend
 
-### 3.1. Pull image từ docker registry
-```
-docker pull hoangph3/face-kyc-api:v0.0.1
-```
-![](images/pull-image.png)
-
-### 3.2. Tạo file `docker-compose.yml` như sau:
-```yaml
-version: "3.2"
-
-services:
-  mongodb:
-    container_name: mongo_database
-    image: mongo:6.0.1
-    ports:
-      - '27017:27017'
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
-    volumes: 
-      - mongo-data:/data/db
-  
-  mongo-express:
-    container_name: mongo_express
-    image: mongo-express:1.0.0-alpha
-    restart: always
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=mongodb
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=P4ssW0rD
-    ports:
-      - '8081:8081'
-
-  redis:
-    container_name: redis_queue
-    image: redis:7.0.4
-    ports:
-      - '6379:6379'
-    volumes:
-      - /var/lib/docker/redis-data:/data
-
-  api:
-    build: .
-    image: hoangph3/face-kyc-api:v0.0.1
-    container_name: face_kyc-api
-    ports:
-      - '8999:8999'
-    volumes:
-      - /var/lib/docker/face-kyc-api/ckpt/:/app/ckpt/
-    depends_on:
-      - redis
-    restart: always
-    network_mode: host
-
-volumes:
-  mongo-data:
-    driver: local
+### 3.1. Clone code từ github
+```sh
+git clone https://github.com/hoangph3/face-kyc-api
 ```
 
-Trong đó:
+### 3.2. Build và run container from source
+```sh
+docker-compose up -d --build
+```
+
+Cấu hình được define như sau (xem trong file `docker-compose.yml`):
 - mongo database chạy ở port `27017` với credential `admin:P4ssW0rD`.
 - mongo express chạy ở port `8081` với credential tương tự như mongo database.
 - backend chạy ở port `8999`.
 - redis chạy ở port `6379`.
 
 Có thể đổi username, password của service mongo để  đảm bảo an toàn (password không có ký tự đặc biệt), đảm bảo password ở cả mongodb và mongo-express giống nhau là được.
-
-### 3.3. Chạy các service
-```
-docker-compose up -d
-```
-![](images/run-docker-compose.png)
 
 Kiểm tra các image và container:
 ```sh
