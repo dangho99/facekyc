@@ -142,7 +142,7 @@ Trong phần log có thấy thông báo: `No such file or directory`, tuy nhiên
 
 Ở đây giả sử  backend và AI Box cùng deploy trên cùng một server với ip local: `172.16.36.43`.
 
-Lưu ý trường hợp mà sửa username và password của mongo thì cũng cần phải sửa lại hai trường `admin_user` và `admin_password` trong file `env.json`, sau đó restart lại container.
+Lưu ý trường hợp mà sửa username và password của mongo trong file `docker-compose.yml` thì cũng cần phải sửa lại hai trường `admin_user` và `admin_password` trong file `env.json`
 
 ## 4. Test API
 
