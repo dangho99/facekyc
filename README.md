@@ -72,6 +72,45 @@ git clone https://github.com/hoangph3/face-kyc-api
 ```
 
 ### 3.2. Build và run container from source
+
+Chỉnh sửa file cấu hình `env.json`:
+
+```json
+{
+  "host": "localhost",
+  "k": 5,
+  "n_dims": 512,
+  "duplicate_score": 0.99,
+  "distance_metric": "cosine",
+  "checkpoint_path": "ckpt/v0.0.1",
+  "serving_host": "http://localhost:8501/api/user/pattern",
+  "admin_user": "admin",
+  "admin_password": "P4ssW0rD"
+}
+```
+
+Sửa trường `host` và `serving_host`, trong đó `host` là ip local của hệ thống, `serving_host` và ip của hệ thống AI Box, sử dụng editor `nano`:
+```sh
+root@65c679f80f47:/app# nano env.json
+```
+Sau khi sửa thành công:
+```json
+{
+  "host": "172.16.36.43",
+  "k": 5,
+  "n_dims": 512,
+  "duplicate_score": 0.99,
+  "distance_metric": "cosine",
+  "checkpoint_path": "ckpt/v0.0.1",
+  "serving_host": "http://172.16.36.43:8501/api/user/pattern",
+  "admin_user": "admin",
+  "admin_password": "P4ssW0rD"
+}
+```
+Ở đây giả sử  backend và AI Box cùng deploy trên cùng một server với ip local: `172.16.36.43`.
+
+Chạy lệnh sau để deploy:
+
 ```sh
 docker-compose up -d --build
 ```
@@ -103,65 +142,7 @@ docker logs -f face_kyc-api
 
 Trong phần log có thấy thông báo: `No such file or directory`, tuy nhiên chưa cần quan tâm vì sau khi deploy thì chưa có model indexing. Sau bước này có thể  đến mục 4. để test api luôn.
 
-Trường hợp kiểm tra log backend mà không có gì tức là service chưa chạy được (do docker sẽ lấy ip localhost của container, không phải ip localhost của máy host), lúc này cần cấu hình ip tĩnh như sau:
-
-Sửa ip `localhost` mặc định sang IP local tĩnh ở trong container backend:
-```sh
-# Exec vào bên trong container
-docker exec -it face_kyc-api bash
-```
-Sau khi exec vào thành công thì ta thấy như sau:
-
-![](images/exec-container.png)
-
-List các thư mục và file hiện có trong container:
-```sh
-root@65c679f80f47:/app# ls
-Dockerfile  README.md  ckpt  core  env.json  keeper  main.py  requirements.txt	util
-```
-Xem các biến môi trường trong file `env.json`:
-```sh
-root@65c679f80f47:/app# cat env.json 
-{
-  "host": "localhost",
-  "k": 5,
-  "n_dims": 512,
-  "duplicate_score": 0.99,
-  "distance_metric": "cosine",
-  "checkpoint_path": "ckpt/v0.0.1",
-  "serving_host": "http://localhost:8501/api/user/pattern",
-  "admin_user": "admin",
-  "admin_password": "P4ssW0rD"
-}
-```
-Sửa trường `host` và `serving_host`, trong đó `host` là ip local của hệ thống, `serving_host` và ip của hệ thống AI Box, sử dụng editor `nano`:
-```sh
-root@65c679f80f47:/app# nano env.json
-```
-Sau khi sửa thành công:
-```sh
-{
-  "host": "172.16.36.43",
-  "k": 5,
-  "n_dims": 512,
-  "duplicate_score": 0.99,
-  "distance_metric": "cosine",
-  "checkpoint_path": "ckpt/v0.0.1",
-  "serving_host": "http://172.16.36.43:8501/api/user/pattern",
-  "admin_user": "admin",
-  "admin_password": "P4ssW0rD"
-}
-```
 Ở đây giả sử  backend và AI Box cùng deploy trên cùng một server với ip local: `172.16.36.43`.
-
-Thoát ra khỏi container với tổ hợp phím `Ctrl + D`
-```
-root@65c679f80f47:/app# <Ctrl> + <D>
-```
-Tại phía máy host, restart lại container backend `face_kyc-api`:
-```
-docker restart face_kyc-api
-```
 
 Lưu ý trường hợp mà sửa username và password của mongo thì cũng cần phải sửa lại hai trường `admin_user` và `admin_password` trong file `env.json`, sau đó restart lại container.
 
