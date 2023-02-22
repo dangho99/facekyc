@@ -140,8 +140,6 @@ docker logs -f face_kyc-api
 
 Trong phần log có thấy thông báo: `No such file or directory`, tuy nhiên chưa cần quan tâm vì sau khi deploy thì chưa có model indexing. Sau bước này có thể  đến mục 4. để test api luôn.
 
-Ở đây giả sử  backend và AI Box cùng deploy trên cùng một server với ip local: `172.16.36.43`.
-
 Lưu ý trường hợp mà sửa username và password của mongo trong file `docker-compose.yml` thì cũng cần phải sửa lại hai trường `admin_user` và `admin_password` trong file `env.json`
 
 ## 4. Test API
