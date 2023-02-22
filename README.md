@@ -90,9 +90,7 @@ Chỉnh sửa file cấu hình `env.json`:
 ```
 
 Sửa trường `host` và `serving_host`, trong đó `host` là ip local của hệ thống, `serving_host` và ip của hệ thống AI Box, sử dụng editor `nano`:
-```sh
-root@65c679f80f47:/app# nano env.json
-```
+
 Sau khi sửa thành công:
 ```json
 {
