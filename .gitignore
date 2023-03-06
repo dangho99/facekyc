@@ -12,6 +12,9 @@ __pycache__/
 install.md
 payload.json
 gen_payload.py
+mongo-data/
+api-data/
+redis-data/
 
 # directory
 .idea
