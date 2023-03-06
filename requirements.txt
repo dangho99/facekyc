@@ -12,3 +12,4 @@ Flask-SocketIO==4.3.1
 python-socketio==4.6.0
 python-engineio==3.13.2
 eventlet==0.33.1
+dnspython==2.2.1

@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM hoangph3/face-kyc-api:1.0.0
 
 WORKDIR /app
 
