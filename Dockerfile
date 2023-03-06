@@ -1,4 +1,4 @@
-FROM hoangph3/face-kyc-api:v0.0.1
+FROM hoangph3/face-kyc-api:1.0.0
 
 WORKDIR /app
 

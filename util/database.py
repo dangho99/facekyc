@@ -1,10 +1,13 @@
 import pymongo
-from keeper.environments import SystemEnv
+import os
 
 
-db_uri = "mongodb://{}:{}@{}:27017/".format(SystemEnv.admin_user,
-                                            SystemEnv.admin_password,
-                                            SystemEnv.host)
+db_uri = "mongodb://{}:{}@{}:{}/".format(
+    os.getenv("MONGO_USER", "admin"),
+    os.getenv("MONGO_PASSWORD", "P4ssW0rD"),
+    os.getenv("MONGO_HOST", "127.0.0.1"),
+    os.getenv("MONGO_PORT", "27017")
+)
 
 
 def connect_db(collection_name: str):

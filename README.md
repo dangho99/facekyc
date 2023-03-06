@@ -73,53 +73,48 @@ git clone https://github.com/hoangph3/face-kyc-api
 
 ### 3.2. Build và run container from source
 
-Chỉnh sửa file cấu hình `env.json`:
+Cấu hình biến môi trường trong file `docker-compose.yml`:
 
-```json
-{
-  "host": "localhost",
-  "k": 5,
-  "n_dims": 512,
-  "duplicate_score": 0.99,
-  "distance_metric": "cosine",
-  "checkpoint_path": "ckpt/v0.0.1",
-  "serving_host": "http://localhost:8501/api/user/pattern",
-  "admin_user": "admin",
-  "admin_password": "P4ssW0rD"
-}
+```yaml
+api:
+  build: .
+  image: hoangph3/face-kyc-api:1.0.0
+  container_name: face_kyc_api
+  volumes:
+    - ./api-data:/app/model
+  depends_on:
+    - redis
+  network_mode: host
+  environment:
+    - API_HOST=127.0.0.1
+    - API_PORT=8999
+    - K_MODEL=5
+    - DIM_MODEL=512
+    - METRIC_MODEL=cosine
+    - MODEL_DIR=/app/model
+    - MATCHED_SCORE=0.90
+    - DUPLICATE_SCORE=0.98
+    - SERVING_URL=http://127.0.0.1:8501/api/user/pattern
+    - MONGO_USER=admin
+    - MONGO_PASSWORD=P4ssW0rD
+    - MONGO_HOST=127.0.0.1
+    - MONGO_PORT=27017
+    - REDIS_HOST=127.0.0.1
+    - REDIS_PORT=6379
 ```
 
-Sửa trường `host` và `serving_host`, trong đó `host` là ip local của hệ thống, `serving_host` và ip của hệ thống AI Box, sử dụng editor `nano`:
+Trong đó:
+- `API_HOST` và `API_PORT`: host và port của service chạy backend.
+- `K_MODEL`, `DIM_MODEL`, `METRIC_MODEL`, `MODEL_DIR`, `MATCHED_SCORE` và `DUPLICATE_SCORE`: hyperparameters của mô hình (indexing + AI).
+- `SERVING_URL`: endpoint của AI Box.
+- `MONGO_USER`, `MONGO_PASSWORD`, `MONGO_HOST` và `MONGO_PORT`: cấu hình của mongo database.
+- `REDIS_HOST` và `REDIS_PORT`: cấu hình của message queue.
 
-Sau khi sửa thành công:
-```json
-{
-  "host": "172.16.36.43",
-  "k": 5,
-  "n_dims": 512,
-  "duplicate_score": 0.99,
-  "distance_metric": "cosine",
-  "checkpoint_path": "ckpt/v0.0.1",
-  "serving_host": "http://172.16.36.43:8501/api/user/pattern",
-  "admin_user": "admin",
-  "admin_password": "P4ssW0rD"
-}
-```
-Ở đây giả sử  backend và AI Box cùng deploy trên cùng một server với ip local: `172.16.36.43`.
-
-Chạy lệnh sau để deploy:
+Sau khi cấu hình xong, chạy lệnh sau để deploy:
 
 ```sh
 docker-compose up -d --build
 ```
-
-Cấu hình được define như sau (xem trong file `docker-compose.yml`):
-- mongo database chạy ở port `27017` với credential `admin:P4ssW0rD`.
-- mongo express chạy ở port `8081` với credential tương tự như mongo database.
-- backend chạy ở port `8999`.
-- redis chạy ở port `6379`.
-
-Có thể đổi username, password của service mongo để  đảm bảo an toàn (password không có ký tự đặc biệt), đảm bảo password ở cả mongodb và mongo-express giống nhau là được.
 
 Kiểm tra các image và container:
 ```sh
@@ -140,17 +135,15 @@ docker logs -f face_kyc-api
 
 Trong phần log có thấy thông báo: `No such file or directory`, tuy nhiên chưa cần quan tâm vì sau khi deploy thì chưa có model indexing. Sau bước này có thể  đến mục 4. để test api luôn.
 
-Lưu ý trường hợp mà sửa username và password của mongo trong file `docker-compose.yml` thì cũng cần phải sửa lại hai trường `admin_user` và `admin_password` trong file `env.json`
-
 ## 4. Test API
 
-Để test các api được cấp có thể dùng Postman hoặc lệnh `curl`, mặc định sử dụng ip là `localhost`, nếu sử dụng ip local thì cần sửa lại ip tương ứng trong endpoint.
+Để test các api được cấp có thể dùng Postman hoặc lệnh `curl`, mặc định sử dụng ip là `127.0.0.1`, nếu sử dụng ip local thì cần sửa lại ip tương ứng trong endpoint.
 
 ### 4.1. API đăng ký
 
 API đăng ký là api giao tiếp giữa backend telehouse và backend của kotora.
 
-- Endpoint: http://localhost:8999/api/user/pattern
+- Endpoint: http://127.0.0.1:8999/api/user/pattern
 - Method: POST
 - Content-Type`: application/json
 - Body:
@@ -267,7 +260,7 @@ Update thông tin người dùng thành công, `invalid images` là do người 
 ### 4.2. API verify
 
 API verify là api giao tiếp giữa backend và AI Box, cái này sẽ test sau.
-- Endpoint: http://localhost:8999/api/user/pattern
+- Endpoint: http://127.0.0.1:8999/api/user/pattern
 - Method: PUT
 - Content-Type: application/json
 - Body:
@@ -332,7 +325,7 @@ API verify là api giao tiếp giữa backend và AI Box, cái này sẽ test sa
 
 Bên backend sẽ lưu lịch sử  các lần đăng ký, cập nhật thông tin cũng như xác minh (verify) người dùng. Bên telehouse có thể call API để lấy thông tin lịch sử.
 
-- Endpoint: http://localhost:8999/api/user/monitor
+- Endpoint: http://127.0.0.1:8999/api/user/monitor
 - Method: POST, GET
 - Content-Type: application/json
 - Body:
@@ -394,7 +387,7 @@ Có thể test thêm bằng cách query theo các trường khác, ví dụ như
 
 API xóa người dùng khỏi hệ thống
 
-- Endpoint: http://localhost:8999/api/user/pattern
+- Endpoint: http://127.0.0.1:8999/api/user/pattern
 - Method: DELETE
 - Content-Type`: application/json
 - Body:

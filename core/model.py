@@ -5,19 +5,18 @@ import faiss
 import json
 import os
 
-from keeper.environments import SystemEnv
 from util.logger import get_logger
 logger = get_logger("logs")
 
 class NeighborSearch:
     def __init__(self):
-        self.duplicate_score = SystemEnv.duplicate_score
-        self.matched_score = SystemEnv.matched_score
-        self.k = SystemEnv.k
-        if SystemEnv.distance_metric == "cosine":
-            self.indexing = faiss.IndexFlatIP(SystemEnv.n_dims)
-        elif SystemEnv.distance_metric == "euclidean":
-            self.indexing = faiss.IndexFlatL2(SystemEnv.n_dims)
+        self.duplicate_score = float(os.getenv("DUPLICATE_SCORE", "0.98"))
+        self.matched_score = float(os.getenv("MATCHED_SCORE", "0.90"))
+        self.k = int(os.getenv("K_MODEL", "5"))
+        if os.getenv("METRIC_MODEL") == "cosine":
+            self.indexing = faiss.IndexFlatIP(int(os.getenv("DIM_MODEL", "512")))
+        elif os.getenv("METRIC_MODEL") == "euclidean":
+            self.indexing = faiss.IndexFlatL2(int(os.getenv("DIM_MODEL", "512")))
         else:
             raise ValueError("Metric not found!")
         self.metadata = []

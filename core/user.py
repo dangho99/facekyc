@@ -11,8 +11,6 @@ import os
 
 from util.logger import get_timestamp, get_logger
 from util.database import connect_db, close_db
-from keeper.environments import SystemEnv
-from bson import json_util, ObjectId
 from core.model import NeighborSearch
 from util.hash import md5
 
@@ -20,7 +18,7 @@ requests.packages.urllib3.disable_warnings()
 logger = get_logger("logs")
 
 # init model directory
-model_dir = SystemEnv.checkpoint_path
+model_dir = os.getenv("MODEL_DIR", "/app/model")
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
     logger.info("Create checkpoint in {}".format(model_dir))
@@ -34,17 +32,21 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
     socketio = SocketIO(user)
     socketio.init_app(user, cors_allowed_origins="*", logger=True, engineio_logger=True)
 
-    r = redis.Redis(host=SystemEnv.host, port=6379, db=0)
+    r = redis.Redis(
+        host=os.getenv("REDIS_HOST", "127.0.0.1"),
+        port=int(os.getenv("REDIS_PORT", "6379")),
+        db=0
+    )
     connected = False
     while not connected:
         try:
             r.ping()
             connected = True
-            logger.info("Successfully connected to Redis at {}:6379".format(SystemEnv.host))
+            logger.info("Redis connected!")
         except:
             connected = False
-            logger.info("Redis connection error at {}:6379".format(SystemEnv.host))
-            time.sleep(30)
+            logger.warning("Redis not connected!")
+            time.sleep(10)
 
     current_time = int(time.time())
     r.set("training_version", current_time)
@@ -83,14 +85,17 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
         if len(images) > 0:
             try:
-                responses = requests.post(url=SystemEnv.serving_host, json=images, verify=False)
+                responses = requests.post(
+                    url=os.getenv("SERVING_URL", "http://127.0.0.1:8501/api/user/pattern"),
+                    json=images, verify=False
+                )
                 if responses.status_code == 200:
                     responses = json.loads(responses.text)
                 else:
                     responses = {}
                 connected = True
             except Exception as e:
-                logger.info('Generate embedding %s got error: %s' % (str(images), str(e)))
+                logger.error('Generate embedding error: {}'.format(str(e)))
                 responses = {}
                 connected = False
         else:
@@ -179,52 +184,58 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         collection_logs = connect_db("verify_logs")
 
         data = request.get_json()
-        try:
-            responses = []
-            for d in tqdm(data, desc="Predict"):
-                preds = model.predict(d['encodings'])
-                """
-                preds = [
-                    {"user_id": "", "score": 0.},
-                    ...
-                ]
-                """
-                for i, pred in enumerate(preds):
-                    if not pred["user_id"]:
-                        continue
-                    record = collection.find({"user_id": pred["user_id"]},
-                                             {"_id": 0})[0]
-                    if not record:
-                        pred["user_id"] = "<invalid>"
-                        continue
-                    # get more info
-                    for k, v in d.items():
-                        if k != "encodings":
-                            pred[k] = v[i]
-                    for field in ['zcfg_requester_comboname', 'zcfg_requester_phone_number',
-                              'zcfg_requester_address_email', 'zcfg_requester_id_passport']:
-                        pred[field] = record[field]
-                    pred = {k: v for k, v in pred.items() if k != '_id'}
+        if not len(data):
+            return make_response(jsonify({
+                "responses": [],
+                "message": "Invalid format, data not found",
+            }), 400)
 
-                    # save logs
-                    pred["timestamp"] = get_timestamp()
-                    collection_logs.insert_one(pred)
-                    pred = {k: v for k, v in pred.items() if k != '_id'}
-                    preds[i] = pred
+        responses = []
+        for d in tqdm(data, desc="Predict"): # each image
+            preds = model.predict(d['encodings'])
+            """
+            preds = [
+                {"user_id": "", "score": 0.},
+                ...
+            ]
+            """
+            for i, pred in enumerate(preds): # each user in an image
+
+                if not pred["user_id"]:
+                    continue
+
+                record = collection.find_one({"user_id": pred["user_id"]})
+                if not record:
+                    pred["user_id"] = "<invalid>"
+                    continue
+
+                # add info from request
+                for k, v in d.items():
+                    if k != "encodings":
+                        pred[k] = v[i]
+
+                # get more info from db
+                for field in ['zcfg_requester_comboname',
+                              'zcfg_requester_phone_number',
+                              'zcfg_requester_address_email',
+                              'zcfg_requester_id_passport']:
+                    pred[field] = record[field]
+
+                pred = {k: v for k, v in pred.items() if k != '_id'}
+                pred["timestamp"] = get_timestamp()
+                preds[i] = pred
+
+                # save logs
+                collection_logs.insert_one(pred)
                 responses.append(preds)
-            ok = True
-        except Exception as e:
-            logger.info('Predict data %s got error: %s' % (str(data), str(e)))
-            responses = []
-            ok = False
 
         close_db()
         #push data to socket
         socketio.emit("data_login", {"data": responses}, namespace='/data_login')
-        return jsonify({
-            'responses': responses,
-            'ok': ok
-        })
+        return make_response(jsonify({
+                "responses": responses,
+                "message": "Verify success",
+            }), 200)
 
     @user.route('/api/user/pattern', methods=['DELETE'])
     def api_reset_pattern():

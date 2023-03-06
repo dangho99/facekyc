@@ -10,7 +10,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
     volumes: 
-      - mongo-data:/data/db
+      - ./mongo-data:/data/db
   
   mongo-express:
     container_name: mongo_express
@@ -29,20 +29,30 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - /var/lib/docker/redis-data:/data
+      - ./redis-data:/data
 
   api:
     build: .
-    image: hoangph3/face-kyc-api:v0.0.1
+    image: hoangph3/face-kyc-api:1.0.0
     container_name: face_kyc_api
-    ports:
-      - '8999:8999'
     volumes:
-      - /var/lib/docker/face-kyc-api/ckpt/:/app/ckpt/
+      - ./api-data:/app/model
     depends_on:
       - redis
     network_mode: host
-
-volumes:
-  mongo-data:
-    driver: local
+    environment:
+      - API_HOST=127.0.0.1
+      - API_PORT=8999
+      - K_MODEL=5
+      - DIM_MODEL=512
+      - METRIC_MODEL=cosine
+      - MODEL_DIR=/app/model
+      - MATCHED_SCORE=0.90
+      - DUPLICATE_SCORE=0.98
+      - SERVING_URL=http://127.0.0.1:8501/api/user/pattern
+      - MONGO_USER=admin
+      - MONGO_PASSWORD=P4ssW0rD
+      - MONGO_HOST=127.0.0.1
+      - MONGO_PORT=27017
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
