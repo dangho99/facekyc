@@ -1,4 +1,4 @@
-FROM hoangph3/face-recognition-gateway:1.0.0
+FROM hoangph3/face-recognition-gateway:v0.0.1
 
 WORKDIR /app
 
