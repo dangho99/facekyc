@@ -207,7 +207,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
                 record = collection.find_one({"user_id": pred["user_id"]})
                 if not record:
-                    pred["user_id"] = "<invalid>"
                     continue
 
                 # add info from request
