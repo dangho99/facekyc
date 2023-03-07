@@ -104,6 +104,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
         # generate unique user_id
         user_id = md5("{}_{}".format(id_passport, address_email))
+        data["active"] = data.get("active", True)
         data["user_id"] = user_id
         data["face_images"] = responses.get("face_images", [])
         data["encodings"] = responses.get("encodings", [])
@@ -218,7 +219,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                 for field in ['zcfg_requester_comboname',
                               'zcfg_requester_phone_number',
                               'zcfg_requester_address_email',
-                              'zcfg_requester_id_passport']:
+                              'zcfg_requester_id_passport',
+                              'active']:
                     pred[field] = record[field]
 
                 # save logs
