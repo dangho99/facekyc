@@ -227,7 +227,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
                 # save logs
                 collection_logs.insert_one(pred)
-                responses.append(preds)
+
+            responses.append(preds)
 
         close_db()
         #push data to socket
