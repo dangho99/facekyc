@@ -222,7 +222,6 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                     pred[field] = record[field]
 
                 # save logs
-                pred = {k: v for k, v in pred.items() if k != '_id'}
                 pred["timestamp"] = get_timestamp()
                 collection_logs.insert_one(pred)
 

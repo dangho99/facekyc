@@ -44,12 +44,12 @@ services:
       - API_HOST=127.0.0.1
       - API_PORT=8999
       - K_MODEL=5
-      - DIM_MODEL=512
+      - DIM_MODEL=128
       - METRIC_MODEL=cosine
       - MODEL_DIR=/app/model
       - MATCHED_SCORE=0.90
       - DUPLICATE_SCORE=0.98
-      - SERVING_URL=http://127.0.0.1:8501/api/user/pattern
+      - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
       - MONGO_USER=admin
       - MONGO_PASSWORD=P4ssW0rD
       - MONGO_HOST=127.0.0.1
