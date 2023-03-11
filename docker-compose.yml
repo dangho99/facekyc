@@ -10,7 +10,7 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
     volumes: 
-      - ./mongo-data:/data/db
+      - ./volumes/mongo:/data/db
   
   mongo-express:
     container_name: mongo_express
@@ -29,14 +29,14 @@ services:
     ports:
       - '6379:6379'
     volumes:
-      - ./redis-data:/data
+      - ./volumes/redis:/data
 
   api:
     build: .
     image: hoangph3/face-kyc-api:1.0.0
     container_name: face_kyc_api
     volumes:
-      - ./api-data:/app/model
+      - ./volumes/api:/app/model
     depends_on:
       - redis
     network_mode: host
