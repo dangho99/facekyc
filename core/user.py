@@ -184,6 +184,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         collection = connect_db("customers")
         collection_logs = connect_db("verify_logs")
 
+        # validate data
         data = request.get_json()
         if not len(data):
             return make_response(jsonify({
@@ -211,8 +212,10 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
 
                 # add info from request
                 for k, v in d.items():
-                    if k != "encodings":
+                    try:
                         pred[k] = v[i]
+                    except:
+                        pred[k] = ''  # fix if not have data
 
                 # get more info from db
                 for field in ['zcfg_requester_comboname',
@@ -226,7 +229,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                 pred["timestamp"] = get_timestamp()
                 collection_logs.insert_one(pred)
 
-                pred = {k: v for k, v in pred.items() if k != '_id'}
+                # filter to make response
+                pred = {k: v for k, v in pred.items() if k not in ['_id', 'encodings', 'face_images']}
                 preds[i] = pred
 
             responses.append(preds)
