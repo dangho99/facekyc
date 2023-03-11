@@ -105,8 +105,33 @@ Trong đó:
 - `METRIC_MODEL`: metric tính khoảng cách (`cosine` hoặc `euclidean`, phụ thuộc vào mô hình AI).
 - `MATCHED_SCORE` : similarity score giữa 2 vectors (phụ thuộc vào mô hình AI).
 - `SERVING_URL`: endpoint của model serving (phụ thuộc vào mô hình AI).
-- `MONGO_USER`, `MONGO_PASSWORD` và `MONGO_PORT`: cấu hình của mongo database.
-- `REDIS_PORT`: cấu hình của message queue.
+- `MONGO_USER`, `MONGO_PASSWORD` và `MONGO_PORT`: cấu hình của mongo database, xem ở service `mongodb` trong file `docker-compose.yml`.
+
+```yml
+mongodb:
+    container_name: mongo_database
+    image: mongo:6.0.1
+    ports:
+      - '17017:27017'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
+```
+
+Ở đây ta có:
+- `MONGO_USER` tương ứng với `MONGO_INITDB_ROOT_USERNAME`.
+- `MONGO_PASSWORD` tương ứng với `MONGO_INITDB_ROOT_PASSWORD`.
+- `MONGO_PORT` thì lấy port ở phía bên trái dấu `:` (mặc định là `17017`), trường hợp port này đã bị service khác chiếm thì cần phải sửa thành port khác.
+
+- `REDIS_PORT`: PORT của message queue, xem ở service `redis` trong file `docker-compose.yml`. Chú ý lấy port ở phía bên trái dấu `:` (mặc định là `16379`), trường hợp port này đã bị service khác chiếm thì cần phải sửa thành port khác.
+
+```yml
+redis:
+    container_name: redis_queue
+    image: redis:7.0.4
+    ports:
+      - '16379:6379'
+```
 
 Sau khi cấu hình xong, chạy lệnh sau để deploy:
 
