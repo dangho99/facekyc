@@ -5,7 +5,7 @@ import os
 db_uri = "mongodb://{}:{}@{}:{}/".format(
     os.getenv("MONGO_USER", "admin"),
     os.getenv("MONGO_PASSWORD", "P4ssW0rD"),
-    os.getenv("MONGO_HOST", "127.0.0.1"),
+    os.getenv("API_HOST", "127.0.0.1"),
     os.getenv("MONGO_PORT", "27017")
 )
 

@@ -88,27 +88,25 @@ api:
   environment:
     - API_HOST=127.0.0.1
     - API_PORT=8999
-    - K_MODEL=5
-    - DIM_MODEL=512
+    - DIM_MODEL=128
     - METRIC_MODEL=cosine
-    - MODEL_DIR=/app/model
     - MATCHED_SCORE=0.90
-    - DUPLICATE_SCORE=0.98
     - SERVING_URL=http://127.0.0.1:8501/api/user/pattern
     - MONGO_USER=admin
     - MONGO_PASSWORD=P4ssW0rD
-    - MONGO_HOST=127.0.0.1
-    - MONGO_PORT=27017
-    - REDIS_HOST=127.0.0.1
-    - REDIS_PORT=6379
+    - MONGO_PORT=17017
+    - REDIS_PORT=16379
 ```
 
 Trong đó:
-- `API_HOST` và `API_PORT`: host và port của service chạy backend.
-- `K_MODEL`, `DIM_MODEL`, `METRIC_MODEL`, `MODEL_DIR`, `MATCHED_SCORE` và `DUPLICATE_SCORE`: hyperparameters của mô hình (indexing + AI).
-- `SERVING_URL`: endpoint của AI Box.
-- `MONGO_USER`, `MONGO_PASSWORD`, `MONGO_HOST` và `MONGO_PORT`: cấu hình của mongo database.
-- `REDIS_HOST` và `REDIS_PORT`: cấu hình của message queue.
+- `API_HOST`: host của service chạy backend (mặc định là `127.0.0.1`).
+- `API_PORT`: port của service chạy backend (mặc định là `8999`, trường hợp port này đã bị service khác chiếm thì cần phải sửa thành port khác, ví dụ: `9000`, `9001`, ...)
+- `DIM_MODEL`: số chiều của vector khuôn mặt (phụ thuộc vào mô hình AI).
+- `METRIC_MODEL`: metric tính khoảng cách (`cosine` hoặc `euclidean`, phụ thuộc vào mô hình AI).
+- `MATCHED_SCORE` : similarity score giữa 2 vectors (phụ thuộc vào mô hình AI).
+- `SERVING_URL`: endpoint của model serving (phụ thuộc vào mô hình AI).
+- `MONGO_USER`, `MONGO_PASSWORD` và `MONGO_PORT`: cấu hình của mongo database.
+- `REDIS_PORT`: cấu hình của message queue.
 
 Sau khi cấu hình xong, chạy lệnh sau để deploy:
 

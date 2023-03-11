@@ -18,7 +18,7 @@ requests.packages.urllib3.disable_warnings()
 logger = get_logger("logs")
 
 # init model directory
-model_dir = os.getenv("MODEL_DIR", "/app/model")
+model_dir = "/app/model"
 if not os.path.exists(model_dir):
     os.makedirs(model_dir)
     logger.info("Create checkpoint in {}".format(model_dir))
@@ -33,7 +33,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
     socketio.init_app(user, cors_allowed_origins="*", logger=True, engineio_logger=True)
 
     r = redis.Redis(
-        host=os.getenv("REDIS_HOST", "127.0.0.1"),
+        host=api_host,
         port=int(os.getenv("REDIS_PORT", "6379")),
         db=0
     )

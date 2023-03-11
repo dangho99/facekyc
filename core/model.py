@@ -10,9 +10,9 @@ logger = get_logger("logs")
 
 class NeighborSearch:
     def __init__(self):
-        self.duplicate_score = float(os.getenv("DUPLICATE_SCORE", "0.98"))
         self.matched_score = float(os.getenv("MATCHED_SCORE", "0.90"))
-        self.k = int(os.getenv("K_MODEL", "5"))
+        self.duplicate_score = 0.99
+        self.k = 5
         if os.getenv("METRIC_MODEL") == "cosine":
             self.indexing = faiss.IndexFlatIP(int(os.getenv("DIM_MODEL", "512")))
         elif os.getenv("METRIC_MODEL") == "euclidean":
