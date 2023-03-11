@@ -123,7 +123,7 @@ mongodb:
 - `MONGO_PASSWORD` tương ứng với `MONGO_INITDB_ROOT_PASSWORD`.
 - `MONGO_PORT` thì lấy port ở phía bên trái dấu `:` (mặc định là `17017`), trường hợp port này đã bị service khác chiếm thì cần phải sửa thành port khác.
 
-- `REDIS_PORT`: PORT của message queue, xem ở service `redis` trong file `docker-compose.yml`. Chú ý lấy port ở phía bên trái dấu `:` (mặc định là `16379`), trường hợp port này đã bị service khác chiếm thì cần phải sửa thành port khác.
+- `REDIS_PORT`: port của message queue, xem ở service `redis` trong file `docker-compose.yml`. Chú ý lấy port ở phía bên trái dấu `:` (mặc định là `16379`), trường hợp port này đã bị service khác chiếm thì cần phải sửa thành port khác.
 
 ```yml
 redis:
