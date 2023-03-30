@@ -79,7 +79,7 @@ Cấu hình biến môi trường trong file `docker-compose.yml`:
 api:
   build: .
   image: hoangph3/face-kyc-api:1.0.0
-  container_name: face_kyc_api
+  container_name: face_kyc-api
   volumes:
     - ./api-data:/app/model
   depends_on:
