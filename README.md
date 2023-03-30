@@ -151,7 +151,7 @@ docker ps
 
 Kiểm tra log của backend:
 ```
-docker logs -f face_kyc-api
+docker logs -f face_kyc_api
 ```
 
 ![](images/docker-log-backend.png)
