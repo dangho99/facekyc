@@ -1,20 +1,11 @@
 from PIL import Image
 import numpy as np
-import base64
 import requests
+import base64
 import random
 import json
 import os
 import io
-
-
-def fake():
-    prefix = [
-        '096','097','098','032','033','034','035','036','037','038','039'
-        ]
-    start = random.choice(prefix)
-    end = random.randint(0000000, 9999999)
-    return start + str(end)
 
 
 def generate():
@@ -25,7 +16,7 @@ def generate():
         user_dir = os.path.join(data_dir, user_dir)
         if not os.path.isdir(user_dir):
             continue
-        with open(os.path.join(data_dir, os.path.basename(user_dir)+'.json'), "w") as f:
+        with open(os.path.join(data_dir, "{}.json".format(os.path.basename(user_dir))), "w") as f:
             images = []
             for img_file in os.listdir(user_dir):
                 img_path = os.path.join(user_dir, img_file)
@@ -35,15 +26,16 @@ def generate():
                 "images": images,
                 "zcfg_requester_comboname": os.path.basename(user_dir),
                 "zcfg_requester_address_email": "{}@gmail.com".format(os.path.basename(user_dir)),
-                "zcfg_requester_id_passport": fake()[:9],
-                "zcfg_requester_phone_number": fake(),
-                "zcfg_requester_access_purpose": "tour",
-                "attachments": "",
-                "zcfg_approver_comboname": "administrator",
-                "zcfg_approver_address_email": "superadmin@telehouse.com",
-                "zusing": True,
-                "zstart_date": "2022-09-01 08:00:00",
-                "zend_date": "2022-09-01 10:00:00",
+                "zcfg_requester_id_passport": random.randint(000000000000, 999999999999),
+                "zcfg_requester_phone_number": random.randint(0000000000, 9999999999),
+                "active": True,
+                # "zcfg_requester_access_purpose": "tour",
+                # "attachments": "",
+                # "zcfg_approver_comboname": "administrator",
+                # "zcfg_approver_address_email": "superadmin@telehouse.com",
+                # "zusing": True,
+                # "zstart_date": "2022-09-01 08:00:00",
+                # "zend_date": "2022-09-01 10:00:00",
             }
             r = requests.post(url=url, json=payload)
             print(user_dir, r.json())

@@ -41,7 +41,7 @@ services:
     restart: always
     volumes:
       - ./camera/config:/app/config
-      # - /dev:/dev
+      - /dev:/dev
     environment:
       - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
       - IMAGE_WIDTH=500

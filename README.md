@@ -1,5 +1,7 @@
 
-# Hướng dẫn cài đặt backend KYC local
+# Hướng dẫn cài đặt FaceKYC local
+
+![](docs/facekyc_architecture.png)
 
 ## 1. Requirements
 - OS: Ubuntu 18.04, 20.04
@@ -40,20 +42,29 @@ Test:
 docker -v
 ```
 Thấy hiện phiên bản docker là thành công:
-
-![](images/docker-version.png)
+```
+Docker version 23.0.2, build 569dd73
+```
 
 ### 2.2 Docker Compose
+
 Tải docker-compose binary file:
+
+- Đối với x86_64:
 ```sh
-wget https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64
+wget -O docker-compose https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-x86_64
+```
+
+- Đối với ARM (Raspberry Pi, Jetson, ...):
+```sh
+wget -O docker-compose https://github.com/docker/compose/releases/download/v2.4.1/docker-compose-linux-aarch64
 ```
 
 Tạo symbolic link để chạy docker-compose command:
 ```
-mv docker-compose-linux-x86_64 /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
-ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose --force
+sudo mv docker-compose /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose --force
 ```
 
 Test:
@@ -61,41 +72,124 @@ Test:
 docker-compose -v
 ```
 Thấy hiện phiên bản docker-compose là thành công:
+```
+Docker Compose version v2.4.1
+```
 
-![](images/docker-compose-version.png)
-
-## 3. Triển khai backend
+## 3. Triển khai facekyc services
 
 ### 3.1. Clone code từ github
 ```sh
 git clone https://github.com/hoangph3/face-kyc-api
 ```
+Truy cập vào thư mục code:
+```sh
+cd face-kyc-api/
+```
 
-### 3.2. Build và run container from source
+### 3.2. Run container
 
-Cấu hình biến môi trường trong file `docker-compose.yml`:
+Cấu hình biến môi trường trong file `docker-compose.yml`, ta sẽ cấu hình lần lượt cho từng service:
+
+a. Đối với service `mongodb` (mongo database):
 
 ```yaml
-api:
-  build: .
-  image: hoangph3/face-kyc-api:1.0.0
-  container_name: face_kyc-api
-  volumes:
-    - ./api-data:/app/model
-  depends_on:
-    - redis
-  network_mode: host
-  environment:
-    - API_HOST=127.0.0.1
-    - API_PORT=8999
-    - DIM_MODEL=128
-    - METRIC_MODEL=cosine
-    - MATCHED_SCORE=0.90
-    - SERVING_URL=http://127.0.0.1:8501/api/user/pattern
-    - MONGO_USER=admin
-    - MONGO_PASSWORD=P4ssW0rD
-    - MONGO_PORT=17017
-    - REDIS_PORT=16379
+  mongodb:
+    container_name: facekyc-mongodb
+    image: mongo:6.0.1
+    ports:
+      - '17017:27017'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
+    volumes: 
+      - ./volumes/mongodb:/data/db
+```
+Trong đó:
+- `MONGO_INITDB_ROOT_USERNAME`: username của mongo database.
+- `MONGO_INITDB_ROOT_PASSWORD`: password của mongo database.
+
+Chú ý trường `ports` có giá trị là `17017:27017` thì port `17017` là của máy host và port `27017` là port của container. Như vậy địa chỉ của mongo database sẽ là `http://127.0.0.1:17017`.
+
+b. Đối với service `mongoexp` (mongo UI):
+```yaml
+  mongoexp:
+    container_name: facekyc-mongoexp
+    image: mongo-express:1.0.0-alpha
+    restart: always
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=P4ssW0rD
+    ports:
+      - '18081:8081'
+```
+Trong đó:
+- `ME_CONFIG_MONGODB_SERVER`: tên service của mongo database (KHÔNG SỬA).
+- `ME_CONFIG_MONGODB_ADMINUSERNAME`: lấy theo biến `MONGO_INITDB_ROOT_USERNAME` trong service `mongodb`.
+- `ME_CONFIG_MONGODB_ADMINPASSWORD`: lấy theo biến `MONGO_INITDB_ROOT_PASSWORD` trong service `mongodb`.
+
+Chú ý trường `ports` có giá trị là `18081:8081` thì port `18081` là của máy host và port `8081` là port của container. Như vậy địa chỉ của mongo UI sẽ là `http://127.0.0.1:18081`.
+
+c. Đối với service `redis`:
+
+```yaml
+  redis:
+    container_name: facekyc-redis
+    image: redis:7.0.4
+    ports:
+      - '16379:6379'
+    volumes:
+      - ./volumes/redis:/data
+```
+
+Chú ý trường `ports` có giá trị là `16379:6379` thì port `16379` là của máy host và port `6379` là port của container. Như vậy địa chỉ của redis sẽ là `http://127.0.0.1:16379`.
+
+d. Đối với service `camera`:
+
+```yaml
+  camera:
+    image: hoangph3/facekyc-camera:1.0.0
+    container_name: facekyc-camera
+    network_mode: host
+    depends_on:
+      - recognition
+    restart: always
+    volumes:
+      - ./camera/config:/app/config
+      - /dev:/dev
+    environment:
+      - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
+      - IMAGE_WIDTH=500
+      - FPS=1
+```
+
+Trong đó:
+- `SERVING_URL`: endpoint của model recognition serving (xem ở service `recognition`).
+- `IMAGE_WIDTH`: Độ rộng của ảnh sau khi resize (resize ảnh để giao tiếp REST api nhanh hơn).
+- `FPS`: Tốc độ inference, FPS càng cao thì tốc độ inference càng cao.
+
+e. Đối với service `indexing`:
+```yaml
+  indexing:
+    image: hoangph3/facekyc-indexing:1.0.0
+    container_name: facekyc-indexing
+    volumes:
+      - ./volumes/indexing:/app/model
+    depends_on:
+      - redis
+    network_mode: host
+    environment:
+      - API_HOST=127.0.0.1
+      - API_PORT=8999
+      - DIM_MODEL=128
+      - METRIC_MODEL=cosine
+      - MATCHED_SCORE=0.90
+      - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
+      - MONGO_USER=admin
+      - MONGO_PASSWORD=P4ssW0rD
+      - MONGO_PORT=17017
+      - REDIS_PORT=16379
 ```
 
 Trong đó:
@@ -104,366 +198,68 @@ Trong đó:
 - `DIM_MODEL`: số chiều của vector khuôn mặt (phụ thuộc vào mô hình AI).
 - `METRIC_MODEL`: metric tính khoảng cách (`cosine` hoặc `euclidean`, phụ thuộc vào mô hình AI).
 - `MATCHED_SCORE` : similarity score giữa 2 vectors (phụ thuộc vào mô hình AI).
-- `SERVING_URL`: endpoint của model serving (phụ thuộc vào mô hình AI).
-- `MONGO_USER`, `MONGO_PASSWORD` và `MONGO_PORT`: cấu hình của mongo database, xem ở service `mongodb` trong file `docker-compose.yml`.
+- `MONGO_USER`, `MONGO_PASSWORD` và `MONGO_PORT`: cấu hình theo service `mongodb` (mongo database).
+- `REDIS_PORT`: cấu hình theo service `redis`.
 
-```yml
-mongodb:
-    container_name: mongo_database
-    image: mongo:6.0.1
+f. Đối với service `recognition`:
+```yaml
+  recognition:
+    image: hoangph3/facekyc-recognition:1.0.0
+    container_name: facekyc-recognition
     ports:
-      - '17017:27017'
+      - '8501:8501'
+    network_mode: host
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
+      - API_HOST=127.0.0.1
+      - API_PORT=8501
+      - BACKEND_URL=https://127.0.0.1:8999/api/user/pattern
 ```
 
-Ở đây ta có:
-- `MONGO_USER` tương ứng với `MONGO_INITDB_ROOT_USERNAME`.
-- `MONGO_PASSWORD` tương ứng với `MONGO_INITDB_ROOT_PASSWORD`.
-- `MONGO_PORT` thì lấy port ở phía bên trái dấu `:` (mặc định là `17017`), trường hợp port này đã bị service khác chiếm thì cần phải sửa thành port khác.
-
-- `REDIS_PORT`: port của message queue, xem ở service `redis` trong file `docker-compose.yml`. Chú ý lấy port ở phía bên trái dấu `:` (mặc định là `16379`), trường hợp port này đã bị service khác chiếm thì cần phải sửa thành port khác.
-
-```yml
-redis:
-    container_name: redis_queue
-    image: redis:7.0.4
-    ports:
-      - '16379:6379'
-```
+Trong đó:
+- `API_HOST`: host của service chạy model recognition (mặc định là `127.0.0.1`).
+- `API_PORT`: port của service chạy model recognition (mặc định là `8501`).
+- `BACKEND_URL`: endpoint của service chạy backend (indexing).
 
 Sau khi cấu hình xong, chạy lệnh sau để deploy:
 
 ```sh
-docker-compose up -d --build
+docker-compose up -d
 ```
+![](docs/run_container.png)
 
-Kiểm tra các image và container:
+Kiểm tra các container:
 ```sh
-docker images
+docker ps -a
 ```
-![](images/docker-images.png)
+![](docs/status_container.png)
+
+## 4. Test Full
+
+4.1. Đăng ký khuôn mặt:
+
+Chuẩn bị ảnh trong thư mục `data` theo format sau:
+
+- Tạo folder cho mỗi user, đặt tên folder.
+- Ảnh là định dạng `.jpg` hoặc `.png`.
+
+![](docs/data.png)
+
+Chạy script dưới đây để đăng ký khuôn mặt cho toàn bộ user:
 ```sh
-docker ps
-```
-![](images/docker-container.png)
-
-Kiểm tra log của backend:
-```
-docker logs -f face_kyc_api
+python3 register.py
 ```
 
-![](images/docker-log-backend.png)
+Log trả về sẽ là status và message:
 
-Trong phần log có thấy thông báo: `No such file or directory`, tuy nhiên chưa cần quan tâm vì sau khi deploy thì chưa có model indexing. Sau bước này có thể  đến mục 4. để test api luôn.
+![](docs/log_register.png)
 
-## 4. Test API
+4.2. Nhận diện khuôn mặt streaming:
 
-Để test các api được cấp có thể dùng Postman hoặc lệnh `curl`, mặc định sử dụng ip là `127.0.0.1`, nếu sử dụng ip local thì cần sửa lại ip tương ứng trong endpoint.
-
-### 4.1. API đăng ký
-
-API đăng ký là api giao tiếp giữa backend telehouse và backend của kotora.
-
-- Endpoint: http://127.0.0.1:8999/api/user/pattern
-- Method: POST
-- Content-Type`: application/json
-- Body:
-```json
-{
-    "images": ["<image_1>", "<image_2>", "<image_3>", "<image_4>", "<image_5>"],
-    "zcfg_requester_comboname": "<requester_fullname>",
-    "zcfg_requester_organization": "<organization>",
-    "zcfg_requester_address_email": "<requester_email>",
-    "zcfg_requester_id_passport": "<cccd/cmnd>",
-    "zcfg_requester_phone_number": "<phone_number>",
-    "zcfg_requester_access_purpose": "<access_purpose>",
-    "attachments": "<upload_files>",
-    "zcfg_approver_comboname": "<approver_fullname>",
-    "zcfg_approver_address_email": "<approver_email>",
-    "zusing": true,
-    "znot_using": false,
-    "zstart_date": "<checkin_time>",
-    "zend_date": "<checkout_time>",
-    "ztask": "<task_name>"
-}
-```
-- Response:
-```json
-{
-    "message": "<message>",
-    "connected": true
-}
-```
-
-Tạo file `register.json` với nội dung:
-```json
-{
-    "images": [],
-    "zcfg_requester_comboname": "hoang",
-    "zcfg_requester_organization": "kotora",
-    "zcfg_requester_address_email": "hoang@gmail.com",
-    "zcfg_requester_id_passport": "038585963",
-    "zcfg_requester_phone_number": "0391408249",
-    "zcfg_requester_access_purpose": "tour",
-    "attachments": "",
-    "zcfg_approver_comboname": "administrator",
-    "zcfg_approver_address_email": "superadmin@telehouse.com",
-    "zusing": true,
-    "zstart_date": "2022-09-01 08:00:00",
-    "zend_date": "2022-09-01 10:00:00",
-    "ztask": "tour"
-}
-```
-Test với lệnh `curl`:
+Check kết quả nhận diện bằng cách xem log của service `camera`:
 ```sh
-curl -d @register.json -X POST http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
+docker logs -f facekyc-camera
 ```
 
-![](images/register-empty-images.png)
+Log trả về sẽ là status, message và kết quả nhận diện:
 
-Trong đó: `connected` là thông báo kết nối từ backend kotora đến AI Box, do chưa có kết nối nên báo false, message đăng ký thành công nhưng trường `images` không chứa ảnh.
-
-Sửa lại file `register.json` với nội dung:
-```json
-{
-    "images": [],
-    "zcfg_requester_comboname": "hoang",
-    "zcfg_requester_organization": "kotora",
-    "zcfg_requester_phone_number": "0391408249",
-    "zcfg_requester_access_purpose": "tour",
-    "attachments": "",
-    "zcfg_approver_comboname": "administrator",
-    "zcfg_approver_address_email": "superadmin@telehouse.com",
-    "zusing": true,
-    "zstart_date": "2022-09-01 08:00:00",
-    "zend_date": "2022-09-01 10:00:00",
-    "ztask": "tour"
-}
-```
-Test với lệnh `curl`:
-```sh
-curl -d @register.json -X POST http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
-```
-
-![](images/register-invalid-format.png)
-
-Backend yêu cầu thông tin 2 trường: `zcfg_requester_address_email` và `zcfg_requester_id_passport` để tạo `user_id` cho người dùng theo công thức: `hash_md5(<cccd/cmnd>+"_"+<email>)`. Vì payload trên không có 2 trường này nên báo lỗi.
-
-Sửa lại file `register.json` với nội dung:
-```json
-{
-    "images": [],
-    "zcfg_requester_comboname": "hoang_pham",
-    "zcfg_requester_organization": "kotora",
-    "zcfg_requester_address_email": "hoang@gmail.com",
-    "zcfg_requester_id_passport": "038585963",
-    "zcfg_requester_phone_number": "0391408249",
-    "zcfg_requester_access_purpose": "tour",
-    "attachments": "",
-    "zcfg_approver_comboname": "administrator",
-    "zcfg_approver_address_email": "superadmin@telehouse.com",
-    "zusing": true,
-    "zstart_date": "2022-09-01 08:00:00",
-    "zend_date": "2022-09-01 10:00:00",
-    "ztask": "tour"
-}
-```
-Test với lệnh `curl`:
-```sh
-curl -d @register.json -X POST http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
-```
-
-![](images/register-update.png)
-
-Update thông tin người dùng thành công, `invalid images` là do người dùng chưa có ảnh, hoặc ảnh không hợp lệ (AI box sẽ tiến hành verify), vấn đề này sau khi ghép nối với AI Box sẽ đánh giá sau.
-
-
-### 4.2. API verify
-
-API verify là api giao tiếp giữa backend và AI Box, cái này sẽ test sau.
-- Endpoint: http://127.0.0.1:8999/api/user/pattern
-- Method: PUT
-- Content-Type: application/json
-- Body:
-```json
-[
-    {
-        "face_images": ["<face_image_1>", "...", "<face_image_N>"],
-        "gate_location": ["<gate_location_1>", "...", "<gate_location_N>"],
-        "status": ["<status_1>", "...", "<status_N>"],
-        "encodings": ["<encoding_1>", "...", "<encoding_N>"]
-    },
-    "...",
-]
-```
-- Response:
-```json
-[
-    [
-        {
-            "score": "<matching_score>",
-            "user_id": ""
-        },
-        "...",
-        {
-            "face_images": "<face_image>",
-            "gate_location": "<gate_location>",
-            "score": "<matching_score>",
-            "status": 1, //1 is checkin, 0 is checkout
-            "timestamp": "%Y-%m-%d %H:%M:%S",
-            "user_id": "<user_id>",
-            "zcfg_requester_address_email": "<requester_email>",
-            "zcfg_requester_comboname": "<requester_fullname>",
-            "zcfg_requester_id_passport": "<cccd/cmnd>",
-            "zcfg_requester_phone_number": "phone_number"
-        }
-    ],
-    "...",
-    [
-        {
-            "score": "<matching_score>",
-            "user_id": ""
-        },
-        "...",
-        {
-            "face_images": "<face_image>",
-            "gate_location": "<gate_location>",
-            "score": "<matching_score>",
-            "status": 1, //1 is checkin, 0 is checkout
-            "timestamp": "%Y-%m-%d %H:%M:%S",
-            "user_id": "<user_id>",
-            "zcfg_requester_address_email": "<requester_email>",
-            "zcfg_requester_comboname": "<requester_fullname>",
-            "zcfg_requester_id_passport": "<cccd/cmnd>",
-            "zcfg_requester_phone_number": "phone_number"
-        }
-    ]
-]
-```
-
-
-### 4.3 API monitor log
-
-Bên backend sẽ lưu lịch sử  các lần đăng ký, cập nhật thông tin cũng như xác minh (verify) người dùng. Bên telehouse có thể call API để lấy thông tin lịch sử.
-
-- Endpoint: http://127.0.0.1:8999/api/user/monitor
-- Method: POST, GET
-- Content-Type: application/json
-- Body:
-```json
-{
-    "zcfg_requester_comboname": "<requester_fullname>",
-    "zcfg_requester_organization": "<organization>",
-    "zcfg_requester_address_email": "<requester_email>",
-    "zcfg_requester_id_passport": "<cccd/cmnd>",
-    "zcfg_requester_phone_number": "<phone_number>",
-    "zcfg_requester_access_purpose": "<access_purpose>",
-    "attachments": "<upload_files>",
-    "zcfg_approver_comboname": "<approver_fullname>",
-    "zcfg_approver_address_email": "<approver_email>",
-    "zusing": true,
-    "znot_using": false,
-    "zstart_date": "<checkin_time>",
-    "zend_date": "<checkout_time>",
-    "ztask": "<task_name>"
-}
-```
-- Response:
-```json
-{
-    "register_logs": [
-        {},
-        "...",
-        {}
-    ],
-    "verify_logs": [
-        {},
-        "...",
-        {}
-    ]
-}
-```
-
-Query thông tin lịch sử  theo những trường cần lấy, ví dụ:
-
-Tạo file `monitor.json` với nội dung:
-```json
-{
-    "zcfg_requester_address_email": "hoang@gmail.com"
-}
-```
-Test với lệnh `curl`:
-```sh
-curl -d @monitor.json -X GET http://172.16.36.43:8999/api/user/monitor -H "Content-Type: application/json"
-```
-
-![](images/monitor.png)
-
-
-Ở đây giá trị trường method là add (register) hoặc là edit (update), verify logs không có.
-
-Có thể test thêm bằng cách query theo các trường khác, ví dụ như: `zcfg_approver_comboname`, `zend_date`, `zstart_date`, ...
-
-### 4.4 Xóa người dùng:
-
-API xóa người dùng khỏi hệ thống
-
-- Endpoint: http://127.0.0.1:8999/api/user/pattern
-- Method: DELETE
-- Content-Type`: application/json
-- Body:
-```json
-{
-    "zcfg_requester_address_email": "<requester_email>",
-    "zcfg_requester_id_passport": "<cccd/cmnd>",
-}
-```
-- Response:
-```json
-{
-    "message": "<message>",
-    "email": "<address_email>",
-    "id_passport": "<id_passport>"
-}
-```
-
-Tạo file `delete.json` với nội dung:
-```json
-{
-    "zcfg_requester_address_email": "hoang@gmail.com",
-    "zcfg_requester_id_passport": ""
-}
-```
-Test với lệnh `curl`:
-```sh
-curl -d @delete.json -X DELETE http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
-```
-
-![](images/delete-user-invalid-format.png)
-
-Lỗi do không đủ thông tin để xóa.
-
-Sửa file `delete.json` với nội dung:
-```json
-{
-    "zcfg_requester_address_email": "hoang@gmail.com",
-    "zcfg_requester_id_passport": "038585963"
-}
-```
-Test với lệnh `curl`:
-```sh
-curl -d @delete.json -X DELETE http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
-```
-
-![](images/delete-user.png)
-
-Test với lệnh `curl`:
-```sh
-curl -d @delete.json -X DELETE http://172.16.36.43:8999/api/user/pattern -H "Content-Type: application/json"
-```
-
-![](images/delete-user-not-exist.png)
-
-Lỗi do user không tồn tại.
+![](docs/log_verify.png)
