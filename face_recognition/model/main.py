@@ -5,6 +5,9 @@ import numpy as np
 import requests
 import json
 import dataio
+import os
+
+from check_area import IntrusionTask
 
 requests.packages.urllib3.disable_warnings()
 face = Blueprint('face', __name__)
@@ -50,7 +53,11 @@ def api_register_pattern():
 
 @face.route('pattern', methods=['PUT'])
 def api_verify_pattern():
-    images = request.get_json()
+    data = request.get_json()
+    images = data.get("images")
+    cam_cfg = data.get("cam_cfg")
+
+    intrusion_detector = IntrusionTask(cam_cfg)
 
     payload = []
     for image in images:
@@ -60,21 +67,31 @@ def api_verify_pattern():
         face_locations = face_recognition.face_locations(unknown_image)
         face_encodings = face_recognition.face_encodings(unknown_image, face_locations)
         face_encodings = [features.tolist() for features in face_encodings if type(features) == np.ndarray]
-        d = {"face_images": [
+        d = {
+            "face_images": [
                 dataio.convert_numpy_array_to_bytes(unknown_image[top:bottom, left:right])
                 for (top, right, bottom, left) in face_locations
-              ],
-             "gate_location": np.arange(len(face_encodings)).tolist(), #fake data
-             "status": [1] * len(face_encodings), #fake data
-             "encodings": face_encodings
+            ],
+            "gate_location": [
+                intrusion_detector.check_intrusion(face_box)
+                for face_box in face_locations
+            ],
+            "status": [cam_cfg["id"]] * len(face_encodings),
+            "encodings": face_encodings
         }
         payload.append(d)
 
+    if not len(payload):
+        return make_response(jsonify({
+            "message": "No Face is founded!",
+        }), 200)
+
     # put request
-    r = requests.put(url="https://localhost:8999/api/user/pattern",
+    r = requests.put(url=os.getenv("BACKEND_URL", "https://127.0.0.1:8999/api/user/pattern"),
                      json=payload, verify=False)
-    print(r)
+
     response = make_response(jsonify(json.loads(r.text)), r.status_code)
+    
     return response
 
 
@@ -83,8 +100,8 @@ if __name__ == '__main__':
     CORS(app)
     app.register_blueprint(face, url_prefix='/api/user')
     app.run(
-        host="0.0.0.0",
-        port="8501",
+        host=os.getenv("API_HOST", "127.0.0.1"),
+        port=int(os.getenv("API_PORT", "8501")),
         debug=True,
         ssl_context=("./certs/cert.pem", "./certs/key.pem")
     )

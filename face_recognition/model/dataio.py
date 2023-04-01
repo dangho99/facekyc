@@ -4,14 +4,18 @@ import base64
 import io
 
 
-image_shape = (500, 500)
-
-def convert_img_to_numpy_array(img_path):
+def convert_img_to_numpy_array(img_path, new_width=500):
     # TODO: load image from directory and convert to numpy array
     img = Image.open(img_path)
     img.convert("RGB").save(img_path, "JPEG")
     img = Image.open(img_path)
-    img = img.resize(image_shape)
+
+    # resize with aspect ratio
+    aspect_ratio = img.height / img.width
+    new_height = new_width * aspect_ratio
+    img = img.resize((new_width, new_height), Image.ANTIALIAS)
+
+    # convert to array
     array = np.asarray(img)
     return array
 

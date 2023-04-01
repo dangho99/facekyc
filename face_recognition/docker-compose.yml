@@ -1,10 +1,31 @@
 version: "3.2"
 
 services:
+
   face_recognition:
     build: .
-    image: hoangph3/face-recognition-gateway:v0.0.1
-    container_name: face_recognition_gateway
+    image: hoangph3/face-recognition:1.0.0
+    container_name: face_recognition
     ports:
       - '8501:8501'
     network_mode: host
+    environment:
+      - API_HOST=127.0.0.1
+      - API_PORT=8501
+      - BACKEND_URL=https://127.0.0.1:8999/api/user/pattern
+
+  face_camera:
+    build: .
+    image: hoangph3/face-camera:1.0.0
+    container_name: face_camera
+    network_mode: host
+    depends_on:
+      - face_recognition
+    restart: always
+    volumes:
+      - ./camera/config.json:/app/config.json
+      # - /dev:/dev
+    environment:
+      - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
+      - IMAGE_WIDTH=500
+      - FPS=1

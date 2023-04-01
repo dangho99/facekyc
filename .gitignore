@@ -11,7 +11,7 @@ __pycache__/
 # Dockerfile
 install.md
 payload.json
-gen_payload.py
+# gen_payload.py
 volumes/
 
 # directory
