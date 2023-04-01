@@ -1,7 +1,7 @@
 
 # Hướng dẫn cài đặt FaceKYC local
 
-![](docs/facekyc_architecture.jpg)
+![](docs/facekyc_architecture.png)
 
 ## 1. Requirements
 - OS: Ubuntu 18.04, 20.04
