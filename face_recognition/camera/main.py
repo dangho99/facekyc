@@ -100,11 +100,14 @@ def read_frame(config: dict):
                         continue
 
                     for each_user in each_frame:
-                        if not each_user['active']:  # user is not actived in database
+                        if not each_user.get('active', None):  # user is not actived in database
                             continue
 
                         if gpio_imported:
-                            open_gate(each_user['gate_location'])
+                            try:
+                                open_gate(each_user.get('gate_location', None))
+                            except Exception as e:
+                                logger.info("Open gate error: {} with user: {}".format(str(e), each_user))
 
             # Press Esc key to exit
             if cv2.waitKey(1) == 27:

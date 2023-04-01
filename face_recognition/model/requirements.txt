@@ -5,3 +5,5 @@ Flask==2.0.3
 Werkzeug==2.0.3
 flask-cors==3.0.10
 pyOpenSSL==22.1.0
+shapely==1.8.5
+geos==0.2.3
