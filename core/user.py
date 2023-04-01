@@ -293,7 +293,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         return make_response(jsonify(responses), 200)
 
     def auto_train():
-        interval = 5
+        interval = 3
         while True:
             data = r.lpop("training_data")
             if not data:

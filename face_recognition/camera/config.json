@@ -2,7 +2,7 @@
     "camera": [
         {
             "1": {
-                "host": 0,
+                "host": "http://192.168.0.7:8080/shot.jpg",
                 "id": "checkin",
                 "areas": [[0,0,1280,0,1280,720,0,720]], 
                 "body_ratio": 1,
