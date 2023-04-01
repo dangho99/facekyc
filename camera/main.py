@@ -21,8 +21,8 @@ def read_frame(config: dict):
 
     # gpio
     try:
-        from util.gpio_handler import init_gpio, open_gate
-        init_gpio()
+        from util import gpio_handler
+        gpio_handler.init_gpio()
         gpio_imported = True
     except Exception as e:
         gpio_imported = False
@@ -102,7 +102,7 @@ def read_frame(config: dict):
 
                         if gpio_imported:
                             try:
-                                open_gate(each_user.get('gate_location', None))
+                                gpio_handler.open_gate(each_user.get('gate_location', None))
                             except Exception as e:
                                 logger.info("Open gate error: {} with user: {}".format(str(e), each_user))
 
@@ -118,6 +118,9 @@ def read_frame(config: dict):
                 continue
             video_capture.release()
         cv2.destroyAllWindows()
+
+        gpio_handler.clean_gpio()
+
         logger.info("KeyboardInterrupt")
 
 

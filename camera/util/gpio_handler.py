@@ -14,6 +14,7 @@ import time
 # pin22 PY.01
 # pin18 PY.03
 
+GPIO.setwarnings(False)
 gate_gpio = {
     'input': [16, 12, 11, 7],
     'output': [26, 24, 22, 18]
@@ -29,13 +30,19 @@ def init_gpio():
     GPIO.setup(gate_gpio['output'], GPIO.OUT)
 
 
+def clean_gpio():
+    GPIO.cleanup()
+
+
 def open_gate(idx):
     if idx is None:
         return
     GPIO.output(gate_gpio['output'][idx], GPIO.HIGH)
     time.sleep(2.0)
-    GPIO.output(gate_gpio['output'][idx], GPIO.HIGH)
+    GPIO.output(gate_gpio['output'][idx], GPIO.LOW)
 
 
 def get_gate(idx):
+    if idx is None:
+        return
     return GPIO.input(gate_gpio['input'][idx])
