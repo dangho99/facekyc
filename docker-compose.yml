@@ -1,8 +1,9 @@
 version: "3.2"
 
 services:
+
   mongodb:
-    container_name: mongo_database
+    container_name: facekyc-mongodb
     image: mongo:6.0.1
     ports:
       - '17017:27017'
@@ -10,10 +11,10 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
     volumes: 
-      - ./volumes/mongo:/data/db
+      - ./volumes/mongodb:/data/db
   
-  mongo-express:
-    container_name: mongo_express
+  mongoexp:
+    container_name: facekyc-mongoexp
     image: mongo-express:1.0.0-alpha
     restart: always
     environment:
@@ -24,19 +25,33 @@ services:
       - '18081:8081'
 
   redis:
-    container_name: redis_queue
+    container_name: facekyc-redis
     image: redis:7.0.4
     ports:
       - '16379:6379'
     volumes:
       - ./volumes/redis:/data
 
-  api:
-    build: .
-    image: hoangph3/face-kyc-api:1.0.0
-    container_name: face_kyc-api
+  camera:
+    image: hoangph3/facekyc-camera:1.0.0
+    container_name: facekyc-camera
+    network_mode: host
+    depends_on:
+      - recognition
+    restart: always
     volumes:
-      - ./volumes/api:/app/model
+      - ./camera/config:/app/config
+      # - /dev:/dev
+    environment:
+      - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
+      - IMAGE_WIDTH=500
+      - FPS=1
+
+  indexing:
+    image: hoangph3/facekyc-indexing:1.0.0
+    container_name: facekyc-indexing
+    volumes:
+      - ./volumes/indexing:/app/model
     depends_on:
       - redis
     network_mode: host
@@ -51,3 +66,18 @@ services:
       - MONGO_PASSWORD=P4ssW0rD
       - MONGO_PORT=17017
       - REDIS_PORT=16379
+
+  recognition:
+    image: hoangph3/facekyc-recognition:1.0.0
+    container_name: facekyc-recognition
+    ports:
+      - '8501:8501'
+    network_mode: host
+    environment:
+      - API_HOST=127.0.0.1
+      - API_PORT=8501
+      - BACKEND_URL=https://127.0.0.1:8999/api/user/pattern
+
+networks:
+  default:
+    name: facekyc-net

@@ -13,7 +13,7 @@ def convert_img_to_numpy_array(img_path, new_width=500):
     # resize with aspect ratio
     aspect_ratio = img.height / img.width
     new_height = new_width * aspect_ratio
-    img = img.resize((new_width, new_height), Image.ANTIALIAS)
+    img = img.resize((int(new_width), int(new_height)))
 
     # convert to array
     array = np.asarray(img)

@@ -223,7 +223,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                               'zcfg_requester_address_email',
                               'zcfg_requester_id_passport',
                               'active']:
-                    pred[field] = record[field]
+                    pred[field] = record.get(field, '')
 
                 # save logs
                 pred["timestamp"] = get_timestamp()
@@ -243,34 +243,35 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                 "message": "Verify success",
             }), 200)
 
-    @user.route('/api/user/pattern', methods=['DELETE'])
-    def api_reset_pattern():
-        data = request.get_json()
-        address_email = data.get("zcfg_requester_address_email", "")
-        id_passport = data.get("zcfg_requester_id_passport", "")
+    # NO LONGER SUPPORT
+    # @user.route('/api/user/pattern', methods=['DELETE'])
+    # def api_reset_pattern():
+    #     data = request.get_json()
+    #     address_email = data.get("zcfg_requester_address_email", "")
+    #     id_passport = data.get("zcfg_requester_id_passport", "")
 
-        if (not address_email) or (not id_passport):
-            return make_response(jsonify({
-                "message": "Invalid format, address_email or id_passport not found"
-            }), 400)
+    #     if (not address_email) or (not id_passport):
+    #         return make_response(jsonify({
+    #             "message": "Invalid format, address_email or id_passport not found"
+    #         }), 400)
 
-        user_id = md5("{}_{}".format(id_passport, address_email))
+    #     user_id = md5("{}_{}".format(id_passport, address_email))
 
-        collection = connect_db("customers")
-        exist_user = collection.find_one({"user_id": user_id})
-        if not exist_user:
-            return make_response(jsonify({
-                "message": "User is invalid",
-            }), 200)
+    #     collection = connect_db("customers")
+    #     exist_user = collection.find_one({"user_id": user_id})
+    #     if not exist_user:
+    #         return make_response(jsonify({
+    #             "message": "User is invalid",
+    #         }), 200)
 
-        collection.delete_one({"user_id": user_id})
-        close_db()
+    #     collection.delete_one({"user_id": user_id})
+    #     close_db()
 
-        return make_response(jsonify({
-            "message": "Delete success",
-            "email": address_email,
-            "id_passport": id_passport
-        }), 200)
+    #     return make_response(jsonify({
+    #         "message": "Delete success",
+    #         "email": address_email,
+    #         "id_passport": id_passport
+    #     }), 200)
 
     @user.route('/api/user/monitor', methods=['GET'])
     def api_monitor_user():

@@ -1,10 +1,11 @@
-from pathlib import Path
+from PIL import Image
+import numpy as np
+import base64
 import requests
 import random
 import json
 import os
-
-from util import dataio
+import io
 
 
 def fake():
@@ -16,7 +17,7 @@ def fake():
     return start + str(end)
 
 
-def gen():
+def generate():
     url = "https://127.0.0.1:8999/api/user/pattern"
     data_dir = "data"
 
@@ -28,7 +29,7 @@ def gen():
             images = []
             for img_file in os.listdir(user_dir):
                 img_path = os.path.join(user_dir, img_file)
-                img_byte = dataio.convert_img_to_bytes(img_path)
+                img_byte = convert_img_to_bytes(img_path)
                 images.append(img_byte)
             payload = {
                 "images": images,
@@ -49,6 +50,43 @@ def gen():
             json.dump(payload, f, indent=2)
 
 
+def convert_img_to_numpy_array(img_path, new_width=500):
+    # TODO: load image from directory and convert to numpy array
+    img = Image.open(img_path)
+    img.convert("RGB").save(img_path, "JPEG")
+    img = Image.open(img_path)
+
+    # resize with aspect ratio
+    aspect_ratio = img.height / img.width
+    new_height = new_width * aspect_ratio
+    img = img.resize((int(new_width), int(new_height)))
+
+    # convert to array
+    array = np.asarray(img)
+    return array
+
+
+def convert_numpy_array_to_bytes(array: np.array) -> str:
+    # TODO: convert numpy array to bytes
+    compressed_file = io.BytesIO()
+    Image.fromarray(array).save(compressed_file, format="JPEG")
+    compressed_file.seek(0)
+    return base64.b64encode(compressed_file.read()).decode()
+
+
+def convert_img_to_bytes(img_path):
+    # TODO: convert img to bytes
+    array = convert_img_to_numpy_array(img_path)
+    return convert_numpy_array_to_bytes(array)
+
+
+def convert_bytes_to_numpy_array(j_dumps: str) -> np.array:
+    # TODO: load json string to numpy array
+    compressed_data = base64.b64decode(j_dumps)
+    img = Image.open(io.BytesIO(compressed_data))
+    return np.array(img)
+
+
 if __name__ == "__main__":
     random.seed(1234)
-    gen()
+    generate()

@@ -10,15 +10,12 @@ import time
 from util.controller import create_worker_process
 from util.dataio import convert_numpy_array_to_bytes, resize_image
 
+
 os.environ['DISPLAY'] = ':0'
 requests.packages.urllib3.disable_warnings()
-
-# Read config
-with open('config.json') as f:
-    configs = json.load(f)
-
 # Log
 logger.add('app.log', rotation="500 MB")
+
 
 def read_frame(config: dict):
 
@@ -57,7 +54,7 @@ def read_frame(config: dict):
                         height, width, channel = img.shape
                         aspect_ratio = height / width
                         new_height = new_width * aspect_ratio
-                        img = imutils.resize(img, width=new_width, height=new_height)
+                        img = imutils.resize(img, width=int(new_width), height=int(new_height))
                         # cv2.imshow(name_capture, img)  # not working with docker because it not have GUI
                         
                         data[name_capture] = img
@@ -125,6 +122,10 @@ def read_frame(config: dict):
 
 
 if __name__ == "__main__":
+    # Read config
+    with open("config/env.json") as f:
+        configs = json.load(f)
+
     # Capture frames
     # for config in configs['camera']:
     #     for k, v in config.items():

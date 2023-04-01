@@ -4,10 +4,10 @@ import face_recognition
 import numpy as np
 import requests
 import json
-import dataio
 import os
 
-from check_area import IntrusionTask
+from util.check_area import IntrusionTask
+from util import dataio
 
 requests.packages.urllib3.disable_warnings()
 face = Blueprint('face', __name__)
