@@ -39,6 +39,7 @@ services:
     depends_on:
       - recognition
     restart: always
+    privileged: true
     volumes:
       - ./camera/config:/app/config
       - /dev:/dev

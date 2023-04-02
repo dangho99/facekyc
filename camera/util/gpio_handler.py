@@ -38,8 +38,9 @@ def open_gate(idx):
     if idx is None:
         return
     GPIO.output(gate_gpio['output'][idx], GPIO.HIGH)
-    time.sleep(2.0)
+    time.sleep(0.25)
     GPIO.output(gate_gpio['output'][idx], GPIO.LOW)
+    time.sleep(0.25)
 
 
 def get_gate(idx):
