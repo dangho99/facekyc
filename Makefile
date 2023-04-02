@@ -1,44 +1,38 @@
 SHELL := /bin/bash
 
-TAG = 1.0.0
+VERSION := 1.0.0
+OS := $(shell uname -m)
 
-CAMERA_IMG = hoangph3/facekyc-camera:$(TAG)
-
-INDEXING_IMG = hoangph3/facekyc-indexing:$(TAG)
-
-RECOGNITION_IMG = hoangph3/facekyc-recognition:$(TAG)
-
-BASE_IMG = hoangph3/facekyc-recognition:base
-
+CAMERA_IMG = hoangph3/facekyc-camera
+INDEXING_IMG = hoangph3/facekyc-indexing
+RECOGNITION_IMG = hoangph3/facekyc-recognition
 
 build_camera:
-	docker build -f camera/Dockerfile -t $(CAMERA_IMG) camera
+	docker build -f camera/Dockerfile.base -t $(CAMERA_IMG):$(OS)-base camera
+	docker build -f camera/Dockerfile -t $(CAMERA_IMG):$(OS)-$(VERSION) camera
+
 build_indexing:
-	docker build -f indexing/Dockerfile -t $(INDEXING_IMG) indexing
+	docker build -f indexing/Dockerfile -t $(INDEXING_IMG):$(OS)-$(VERSION) indexing
+
 build_recognition:
-	docker build -f recognition/Dockerfile -t $(RECOGNITION_IMG) recognition
-build_base:
-	docker build -f recognition/Dockerfile.base -t $(BASE_IMG) recognition
+	docker build -f recognition/Dockerfile.base -t $(RECOGNITION_IMG):$(OS)-base recognition
+	docker build -f recognition/Dockerfile -t $(RECOGNITION_IMG):$(OS)-$(VERSION) recognition
+
 build: build_camera build_indexing build_recognition
 
 
 push_camera:
-	docker push $(CAMERA_IMG)
+	docker push $(CAMERA_IMG):$(OS)-base
+	docker push $(CAMERA_IMG):$(OS)-$(VERSION)
+
 push_indexing:
-	docker push $(INDEXING_IMG)
+	$(INDEXING_IMG):$(OS)-$(VERSION)
+
 push_recognition:
-	docker push $(RECOGNITION_IMG)
-push_base:
-	docker push $(BASE_IMG)
+	docker push $(RECOGNITION_IMG):$(OS)-base
+	docker push $(RECOGNITION_IMG):$(OS)-$(VERSION)
+
 push: push_camera push_indexing push_recognition
 
-
-pull_camera:
-	docker pull $(CAMERA_IMG)
-pull_indexing:
-	docker pull $(INDEXING_IMG)
-pull_recognition:
-	docker pull $(RECOGNITION_IMG)
-pull_base:
-	docker pull $(BASE_IMG)
-pull: pull_camera pull_indexing pull_recognition
+echo:
+	@echo $(RECOGNITION_IMG):$(OS)-$(VERSION)

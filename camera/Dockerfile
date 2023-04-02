@@ -1,4 +1,4 @@
-FROM hoangph3/python-opencv:py3.7-cv4.0.0
+FROM hoangph3/facekyc-camera:x86_64-base
 
 WORKDIR /app
 

@@ -106,10 +106,6 @@ def read_frame(config: dict):
                             except Exception as e:
                                 logger.info("Open gate error: {} with user: {}".format(str(e), each_user))
 
-            # Press Esc key to exit
-            if cv2.waitKey(1) == 27:
-                break
-
             time.sleep(1 / int(os.getenv("FPS", 1)))
 
     except KeyboardInterrupt:

@@ -1,4 +1,4 @@
-FROM hoangph3/facekyc-recognition:base
+FROM hoangph3/facekyc-recognition:x86_64-base
 
 WORKDIR /app
 
