@@ -1,4 +1,4 @@
-FROM hoangph3/facekyc-camera:x86_64-base
+FROM zauberzeug/l4t-opencv:4.5.2-on-nano-r32.6.1
 
 WORKDIR /app
 
@@ -6,6 +6,7 @@ COPY . .
 
 RUN apt-get update -y && \
     apt-get install nano telnet curl -y && \
-    pip install -r requirements.txt
+    pip3 install -U pip && \
+    pip3 install -r requirements.txt
 
-CMD ["python", "main.py"]
+CMD ["python3", "main.py"]
