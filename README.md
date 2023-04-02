@@ -169,6 +169,28 @@ Trong đó:
 - `IMAGE_WIDTH`: Độ rộng của ảnh sau khi resize (resize ảnh để giao tiếp REST api nhanh hơn).
 - `FPS`: Tốc độ inference, FPS càng cao thì tốc độ inference càng cao.
 
+Đối với service `camera` ta cần cấu hình thêm ở file `camera/config/env.json`:
+```json
+{
+    "camera": [
+        {
+            "1": {
+                "host": "http://192.168.0.7:8080/shot.jpg",
+                "id": "checkin",
+                "areas": [[0,0,1280,0,1280,720,0,720]], 
+                "body_ratio": 1,
+                "input_width": 1280,
+                "input_height": 720,
+                "min_height_box": 5,
+                "max_height_box": 715
+            }
+        }
+    ]
+}
+```
+
+Sửa trường `host` thành địa chỉ ip của camera.
+
 e. Đối với service `indexing`:
 ```yaml
   indexing:
