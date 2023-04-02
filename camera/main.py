@@ -17,7 +17,7 @@ requests.packages.urllib3.disable_warnings()
 logger.add('app.log', rotation="500 MB")
 
 
-def read_frame(config: dict):
+def read_frame(config):
 
     # gpio
     try:
