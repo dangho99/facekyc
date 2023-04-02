@@ -34,3 +34,9 @@ push: push_camera push_indexing push_recognition
 
 echo:
 	@echo $(RECOGNITION_IMG):$(OS)-$(VERSION)
+
+start:
+	docker-compose -f docker-compose.$(OS).yml up -d
+
+stop:
+	docker-compose -f docker-compose.$(OS).yml down -v

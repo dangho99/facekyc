@@ -80,5 +80,6 @@ def convert_bytes_to_numpy_array(j_dumps: str) -> np.array:
 
 
 if __name__ == "__main__":
+    requests.packages.urllib3.disable_warnings()
     random.seed(1234)
     generate()
