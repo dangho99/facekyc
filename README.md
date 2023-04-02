@@ -96,7 +96,7 @@ make build
 
 ### 3.3. Run container
 
-Cấu hình biến môi trường trong file `docker-compose.aarch64.yml`, ta sẽ cấu hình lần lượt cho từng service:
+Cấu hình biến môi trường trong file `docker-compose.aarch64.yml` (hoặc `docker-compose.x86_64.yml` tùy OS), ta sẽ cấu hình lần lượt cho từng service:
 
 a. Đối với service `mongodb` (mongo database):
 
@@ -252,7 +252,7 @@ Trong đó:
 Sau khi cấu hình xong, chạy lệnh sau để deploy:
 
 ```sh
-docker-compose -f docker-compose.aarch64.yml up -d
+make start
 ```
 ![](docs/run_container.png)
 
