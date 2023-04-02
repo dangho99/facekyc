@@ -119,7 +119,11 @@ def read_frame(config: dict):
             video_capture.release()
         cv2.destroyAllWindows()
 
-        gpio_handler.clean_gpio()
+        if gpio_imported:
+            try:
+                gpio_handler.clean_gpio()
+            except:
+                pass
 
         logger.info("KeyboardInterrupt")
 
