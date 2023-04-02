@@ -87,7 +87,14 @@ Truy cập vào thư mục code:
 cd face-kyc-api/
 ```
 
-### 3.2. Run container
+### 3.2. Build image from source (có thể bỏ qua bước này)
+
+Trường hợp muốn build image từ source thì chạy lệnh bên dưới, nếu không build thì docker sẽ tự pull image trên repo về.
+```sh
+make build
+```
+
+### 3.3. Run container
 
 Cấu hình biến môi trường trong file `docker-compose.yml`, ta sẽ cấu hình lần lượt cho từng service:
 

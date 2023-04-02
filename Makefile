@@ -19,6 +19,7 @@ build_recognition:
 	docker build -f recognition/Dockerfile -t $(RECOGNITION_IMG) recognition
 build_base:
 	docker build -f recognition/Dockerfile.base -t $(BASE_IMG) recognition
+build: build_camera build_indexing build_recognition
 
 
 push_camera:
@@ -29,6 +30,7 @@ push_recognition:
 	docker push $(RECOGNITION_IMG)
 push_base:
 	docker push $(BASE_IMG)
+push: push_camera push_indexing push_recognition
 
 
 pull_camera:
@@ -39,3 +41,4 @@ pull_recognition:
 	docker pull $(RECOGNITION_IMG)
 pull_base:
 	docker pull $(BASE_IMG)
+pull: pull_camera pull_indexing pull_recognition
