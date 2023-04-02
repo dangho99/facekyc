@@ -96,7 +96,7 @@ make build
 
 ### 3.3. Run container
 
-Cấu hình biến môi trường trong file `docker-compose.yml`, ta sẽ cấu hình lần lượt cho từng service:
+Cấu hình biến môi trường trong file `docker-compose.aarch64.yml`, ta sẽ cấu hình lần lượt cho từng service:
 
 a. Đối với service `mongodb` (mongo database):
 
@@ -156,7 +156,7 @@ d. Đối với service `camera`:
 
 ```yaml
   camera:
-    image: hoangph3/facekyc-camera:1.0.0
+    image: hoangph3/facekyc-camera:aarch64-1.0.0
     container_name: facekyc-camera
     network_mode: host
     depends_on:
@@ -201,7 +201,7 @@ Sửa trường `host` thành địa chỉ ip của camera.
 e. Đối với service `indexing`:
 ```yaml
   indexing:
-    image: hoangph3/facekyc-indexing:1.0.0
+    image: hoangph3/facekyc-indexing:aarch64-1.0.0
     container_name: facekyc-indexing
     volumes:
       - ./volumes/indexing:/app/model
@@ -213,7 +213,7 @@ e. Đối với service `indexing`:
       - API_PORT=8999
       - DIM_MODEL=128
       - METRIC_MODEL=cosine
-      - MATCHED_SCORE=0.90
+      - MATCHED_SCORE=0.95
       - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
       - MONGO_USER=admin
       - MONGO_PASSWORD=P4ssW0rD
@@ -233,7 +233,7 @@ Trong đó:
 f. Đối với service `recognition`:
 ```yaml
   recognition:
-    image: hoangph3/facekyc-recognition:1.0.0
+    image: hoangph3/facekyc-recognition:aarch64-1.0.0
     container_name: facekyc-recognition
     ports:
       - '8501:8501'
@@ -252,7 +252,7 @@ Trong đó:
 Sau khi cấu hình xong, chạy lệnh sau để deploy:
 
 ```sh
-docker-compose up -d
+docker-compose -f docker-compose.aarch64.yml up -d
 ```
 ![](docs/run_container.png)
 

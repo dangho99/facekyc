@@ -1,0 +1,84 @@
+version: "3.2"
+
+services:
+
+  mongodb:
+    container_name: facekyc-mongodb
+    image: mongo:6.0.1
+    ports:
+      - '17017:27017'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
+    volumes: 
+      - ./volumes/mongodb:/data/db
+  
+  mongoexp:
+    container_name: facekyc-mongoexp
+    image: mongo-express:1.0.0-alpha
+    restart: always
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=P4ssW0rD
+    ports:
+      - '18081:8081'
+
+  redis:
+    container_name: facekyc-redis
+    image: redis:7.0.4
+    ports:
+      - '16379:6379'
+    volumes:
+      - ./volumes/redis:/data
+
+  camera:
+    image: hoangph3/facekyc-camera:x86_64-1.0.0
+    container_name: facekyc-camera
+    network_mode: host
+    depends_on:
+      - recognition
+    restart: always
+    privileged: true
+    volumes:
+      - ./camera/config:/app/config
+      - /dev:/dev
+    environment:
+      - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
+      - IMAGE_WIDTH=500
+      - FPS=1
+
+  indexing:
+    image: hoangph3/facekyc-indexing:x86_64-1.0.0
+    container_name: facekyc-indexing
+    volumes:
+      - ./volumes/indexing:/app/model
+    depends_on:
+      - redis
+    network_mode: host
+    environment:
+      - API_HOST=127.0.0.1
+      - API_PORT=8999
+      - DIM_MODEL=128
+      - METRIC_MODEL=cosine
+      - MATCHED_SCORE=0.95
+      - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
+      - MONGO_USER=admin
+      - MONGO_PASSWORD=P4ssW0rD
+      - MONGO_PORT=17017
+      - REDIS_PORT=16379
+
+  recognition:
+    image: hoangph3/facekyc-recognition:x86_64-1.0.0
+    container_name: facekyc-recognition
+    ports:
+      - '8501:8501'
+    network_mode: host
+    environment:
+      - API_HOST=127.0.0.1
+      - API_PORT=8501
+      - BACKEND_URL=https://127.0.0.1:8999/api/user/pattern
+
+networks:
+  default:
+    name: facekyc-net

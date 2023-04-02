@@ -1,49 +1,53 @@
-import Jetson.GPIO as GPIO
+import os
 import time
 
-# Jetson Xavier NX pin datasheet: 
-# https://people.eng.unimelb.edu.au/pbeuchat/asclinic/hardware/sbc_jetson_xavier_nx.html
 
-# pin16 PY.04
-# pin12 PT.05
-# pin11 PR.04
-# pin7  PS.04
+# TODO: Define input gate
+# 488: pin16 PY.04
+# 462: pin12 PT.05  
+# 447: pin11 PR.04
+# 453: pin7  PS.04
 
-# pin26 PZ.07
-# pin24 PZ.06
-# pin22 PY.01
-# pin18 PY.03
+# TODO: Define output gate
+# 499: pin26 PZ.07 
+# 498: pin24 PZ.06
+# 485: pin22 PY.01
+# 487: pin18 PY.03
 
-GPIO.setwarnings(False)
 gate_gpio = {
-    'input': [16, 12, 11, 7],
-    'output': [26, 24, 22, 18]
+    'input':  [(488, 'PY.04'), (462, 'PT.05'), (447, 'PR.04'), (453, 'PS.04')],
+    'output': [(499, 'PZ.07'), (498, 'PZ.06'), (485, 'PY.01'), (487, 'PY.03')]
 }
 
 
 def init_gpio():
-    # mode
-    GPIO.setmode(GPIO.BOARD)
+    # Config memory
+    os.system("devmem2 0x0243D050 w 0x0a") 
+    os.system("devmem2 0x0243D010 w 0x0a")
+    os.system("devmem2 0x0243D008 w 0x0a")
+    os.system("devmem2 0x0243D018 w 0x0a")
 
-    # in-out
-    GPIO.setup(gate_gpio['input'], GPIO.IN)
-    GPIO.setup(gate_gpio['output'], GPIO.OUT)
+    # Setup output
+    for pin in gate_gpio["output"]:
+        os.system("echo {} > /sys/class/gpio/export".format(pin[0]))
+        os.system("echo out > /sys/class/gpio/{}/direction".format(pin[1]))
 
+    # Setup input
+    for pin in gate_gpio["input"]:
+        os.system("echo {} > /sys/class/gpio/export".format(pin[0]))
+        os.system("echo in > /sys/class/gpio/{}/direction".format(pin[1]))
+    
 
-def clean_gpio():
-    GPIO.cleanup()
+def write_gpio(idx, value):
+    if idx is None:
+        return
+    os.system("echo {} > /sys/class/gpio/{}/value".format(value, gate_gpio["output"][idx][1]))
 
 
 def open_gate(idx):
     if idx is None:
-        return
-    GPIO.output(gate_gpio['output'][idx], GPIO.HIGH)
+        return    
+    write_gpio(idx, 1)
     time.sleep(0.25)
-    GPIO.output(gate_gpio['output'][idx], GPIO.LOW)
+    write_gpio(idx, 0)
     time.sleep(0.25)
-
-
-def get_gate(idx):
-    if idx is None:
-        return
-    return GPIO.input(gate_gpio['input'][idx])

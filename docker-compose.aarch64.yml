@@ -33,7 +33,7 @@ services:
       - ./volumes/redis:/data
 
   camera:
-    image: hoangph3/facekyc-camera:x86_64-1.0.0
+    image: hoangph3/facekyc-camera:aarch64-1.0.0
     container_name: facekyc-camera
     network_mode: host
     depends_on:
@@ -49,7 +49,7 @@ services:
       - FPS=1
 
   indexing:
-    image: hoangph3/facekyc-indexing:x86_64-1.0.0
+    image: hoangph3/facekyc-indexing:aarch64-1.0.0
     container_name: facekyc-indexing
     volumes:
       - ./volumes/indexing:/app/model
@@ -61,7 +61,7 @@ services:
       - API_PORT=8999
       - DIM_MODEL=128
       - METRIC_MODEL=cosine
-      - MATCHED_SCORE=0.90
+      - MATCHED_SCORE=0.95
       - SERVING_URL=https://127.0.0.1:8501/api/user/pattern
       - MONGO_USER=admin
       - MONGO_PASSWORD=P4ssW0rD
@@ -69,7 +69,7 @@ services:
       - REDIS_PORT=16379
 
   recognition:
-    image: hoangph3/facekyc-recognition:x86_64-1.0.0
+    image: hoangph3/facekyc-recognition:aarch64-1.0.0
     container_name: facekyc-recognition
     ports:
       - '8501:8501'

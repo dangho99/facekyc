@@ -1,0 +1,13 @@
+FROM hoangph3/facekyc-recognition:aarch64-base
+
+WORKDIR /app
+
+COPY . .
+
+RUN apt-get update -y && \
+    apt-get install libgeos-dev telnet nano curl -y && \
+    pip3 install -U pip && \
+    pip3 install setuptools && \
+    pip3 install -r requirements.txt
+
+CMD [ "python3", "main.py" ]

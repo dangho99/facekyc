@@ -1,4 +1,4 @@
-FROM zauberzeug/l4t-opencv:4.5.2-on-nano-r32.6.1
+FROM hoangph3/l4t-opencv:4.5.2-on-nano-r32.6.1
 
 WORKDIR /app
 

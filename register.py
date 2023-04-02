@@ -37,7 +37,7 @@ def generate():
                 # "zstart_date": "2022-09-01 08:00:00",
                 # "zend_date": "2022-09-01 10:00:00",
             }
-            r = requests.post(url=url, json=payload)
+            r = requests.post(url=url, json=payload, verify=False)
             print(user_dir, r.json())
             json.dump(payload, f, indent=2)
 
