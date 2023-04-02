@@ -19,7 +19,7 @@ volumes/
 # face_recognition/
 database/
 ckpt/
-data/
+# data/
 
 # Distribution / packaging
 .Python
