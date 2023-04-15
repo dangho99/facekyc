@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM hoangph3/facekyc-indexing:x86_64-1.0.0
 
 WORKDIR /app
 

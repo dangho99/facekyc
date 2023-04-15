@@ -239,12 +239,14 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                 data_login.append(pred)
 
             responses.append(preds)
-            data_logins.append(data_login)
+            if len(data_login):
+                data_logins.append(data_login)
 
         close_db()
 
         #push data to socket
-        socketio.emit("data_login", {"data": data_logins}, namespace='/data_login')
+        if len(data_logins):
+            socketio.emit("data_login", {"data": data_logins}, namespace='/data_login')
 
         return make_response(jsonify({
                 "responses": responses,
