@@ -86,7 +86,7 @@ class NeighborSearch:
             for k, v in stats.items():
                 stats[k] = float(np.sum(v) / (len(v) + 1e-9))
             user_id, score = max(stats.items(), key=lambda x: x[1])
-            result.append({"user_id": user_id, "score": round(score, 2)})
+            result.append({"user_id": user_id, "score": round(score, 4)})
         return result
 
     def save(self, path):

@@ -193,7 +193,10 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             }), 400)
 
         responses = []
+        data_logins = []
+
         for d in tqdm(data, desc="Predict"): # each image
+            data_login = []
             preds = model.predict(d['encodings'])
             """
             preds = [
@@ -233,11 +236,16 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
                 pred = {k: v for k, v in pred.items() if k not in ['_id', 'encodings', 'face_images']}
                 preds[i] = pred
 
+                data_login.append(pred)
+
             responses.append(preds)
+            data_logins.append(data_login)
 
         close_db()
+
         #push data to socket
-        socketio.emit("data_login", {"data": responses}, namespace='/data_login')
+        socketio.emit("data_login", {"data": data_logins}, namespace='/data_login')
+
         return make_response(jsonify({
                 "responses": responses,
                 "message": "Verify success",
@@ -294,7 +302,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
         return make_response(jsonify(responses), 200)
 
     def auto_train():
-        interval = 3
+        interval = 2
         while True:
             data = r.lpop("training_data")
             if not data:
