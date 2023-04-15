@@ -100,7 +100,7 @@ if __name__ == '__main__':
     CORS(app)
     app.register_blueprint(face, url_prefix='/api/user')
     app.run(
-        host=os.getenv("API_HOST", "127.0.0.1"),
+        host=os.getenv("API_HOST", "0.0.0.0"),
         port=int(os.getenv("API_PORT", "8501")),
         debug=True,
         ssl_context=("./certs/cert.pem", "./certs/key.pem")

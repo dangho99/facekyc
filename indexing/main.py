@@ -8,4 +8,4 @@ API_PORT = int(os.getenv("API_PORT", "8999"))
 
 if __name__ == '__main__':
     # run api
-    run(api_host=API_HOST, api_port=API_PORT, debug=True)
+    run(api_host='0.0.0.0', api_port=API_PORT, debug=True)

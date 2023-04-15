@@ -1,0 +1,57 @@
+version: "3.2"
+
+services:
+
+  mongodb:
+    container_name: facekyc-mongodb
+    image: mongo:6.0.1
+    ports:
+      - '17017:27017'
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
+    volumes:
+     - ./volumes/mongodb:/data/db
+  
+  mongoexp:
+    container_name: facekyc-mongoexp
+    image: mongo-express:1.0.0-alpha
+    restart: always
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=P4ssW0rD
+    ports:
+      - '18081:8081'
+
+  redis:
+    container_name: facekyc-redis
+    image: redis:7.0.4
+    ports:
+      - '16379:6379'
+    volumes:
+     - ./volumes/redis:/data
+
+  indexing:
+    image: hoangph3/facekyc-indexing:x86_64-1.0.0
+    container_name: facekyc-indexing
+    volumes:
+     - ./volumes/indexing:/app/model
+    depends_on:
+      - redis
+    network_mode: host
+    environment:
+      - API_HOST=192.168.0.2
+      - API_PORT=8999
+      - DIM_MODEL=512
+      - METRIC_MODEL=cosine
+      - MATCHED_SCORE=0.8
+      - SERVING_URL=http://192.168.0.11:8501/api/user/pattern
+      - MONGO_USER=admin
+      - MONGO_PASSWORD=P4ssW0rD
+      - MONGO_PORT=17017
+      - REDIS_PORT=16379
+
+networks:
+  default:
+    name: facekyc-net

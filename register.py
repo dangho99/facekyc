@@ -9,7 +9,7 @@ import io
 
 
 def generate():
-    url = "https://127.0.0.1:8999/api/user/pattern"
+    url = "https://192.168.0.2:8999/api/user/pattern"
     data_dir = "data"
 
     for user_dir in os.listdir(data_dir):
@@ -49,12 +49,14 @@ def convert_img_to_numpy_array(img_path, new_width=500):
     img = Image.open(img_path)
 
     # resize with aspect ratio
-    aspect_ratio = img.height / img.width
-    new_height = new_width * aspect_ratio
-    img = img.resize((int(new_width), int(new_height)))
+    if max([img.height, img.width]) > new_width:
+        aspect_ratio = img.height / img.width
+        new_height = new_width * aspect_ratio
+        img = img.resize((int(new_width), int(new_height)))
 
     # convert to array
     array = np.asarray(img)
+    print(array.shape)
     return array
 
 
