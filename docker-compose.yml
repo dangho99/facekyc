@@ -41,12 +41,13 @@ services:
       - redis
     network_mode: host
     environment:
+      - DEBUG=0
       - API_HOST=192.168.0.2
       - API_PORT=8999
       - DIM_MODEL=512
       - METRIC_MODEL=cosine
       - MATCHED_SCORE=0.8
-      - SERVING_URL=http://192.168.0.11:8501/api/user/pattern
+      - SERVING_URL=https://192.168.0.11:8501/api/user/pattern
       - MONGO_USER=admin
       - MONGO_PASSWORD=P4ssW0rD
       - MONGO_PORT=17017
