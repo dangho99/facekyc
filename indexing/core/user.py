@@ -319,4 +319,4 @@ def run(api_host='0.0.0.0', api_port=8999, debug=True):
             r.set("training_version", int(time.time()))
 
     Thread(target=auto_train).start()
-    socketio.run(user, host=api_host, port=api_port, debug=True, keyfile='./certs/key.pem', certfile='./certs/cert.pem')
+    socketio.run(user, host=api_host, port=api_port, debug=True, keyfile='./certs/domain.key', certfile='./certs/domain.crt')

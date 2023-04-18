@@ -13,8 +13,6 @@ from util.dataio import convert_numpy_array_to_bytes, resize_image
 
 os.environ['DISPLAY'] = ':0'
 requests.packages.urllib3.disable_warnings()
-# Log
-logger.add('app.log', rotation="500 MB")
 
 
 def read_frame(config):

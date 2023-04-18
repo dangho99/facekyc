@@ -53,6 +53,18 @@ services:
       - MONGO_PORT=17017
       - REDIS_PORT=16379
 
+  television:
+    image: hoangph3/facekyc-television:1.0.0
+    container_name: facekyc-television
+    ports:
+      - 3000:80
+
+  rstp2m3u8:
+    image: hoangph3/ffmpeg-python3:1.0.0
+    container_name: facekyc-rstp-to-m3u8
+    ports:
+      - 8000:8000
+
 networks:
   default:
     name: facekyc-net
