@@ -6,7 +6,7 @@ services:
     container_name: facekyc-mongodb
     image: mongo:6.0.1
     ports:
-      - '17017:27017'
+      - '27017:27017'
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=P4ssW0rD
@@ -28,7 +28,7 @@ services:
     container_name: facekyc-redis
     image: redis:7.0.4
     ports:
-      - '16379:6379'
+      - '6379:6379'
     volumes:
      - ./volumes/redis:/data
 
@@ -46,12 +46,12 @@ services:
       - API_PORT=8999
       - DIM_MODEL=512
       - METRIC_MODEL=cosine
-      - MATCHED_SCORE=0.8
+      - MATCHED_SCORE=0.95
       - SERVING_URL=https://192.168.0.11:8501/api/user/pattern
       - MONGO_USER=admin
       - MONGO_PASSWORD=P4ssW0rD
-      - MONGO_PORT=17017
-      - REDIS_PORT=16379
+      - MONGO_PORT=27017
+      - REDIS_PORT=6379
 
   television:
     image: hoangph3/facekyc-television:1.0.0
@@ -59,11 +59,6 @@ services:
     ports:
       - 3000:80
 
-  rstp2m3u8:
-    image: hoangph3/ffmpeg-python3:1.0.0
-    container_name: facekyc-rstp-to-m3u8
-    ports:
-      - 8000:8000
 
 networks:
   default:
