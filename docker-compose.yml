@@ -36,18 +36,20 @@ services:
     image: hoangph3/facekyc-indexing:x86_64-1.0.0
     container_name: facekyc-indexing
     volumes:
-     - ./volumes/indexing:/app/model
+      - ./volumes/indexing:/app/model
+      - ./certs/kotora.crt:/app/certs/domain.crt
+      - ./certs/kotora.key:/app/certs/domain.key
     depends_on:
       - redis
     network_mode: host
     environment:
       - DEBUG=0
-      - API_HOST=192.168.0.2
+      - API_HOST=localhost
       - API_PORT=8999
       - DIM_MODEL=512
       - METRIC_MODEL=cosine
       - MATCHED_SCORE=0.95
-      - SERVING_URL=https://192.168.0.11:8501/api/user/pattern
+      - SERVING_URL=https://192.168.55.111:8501/api/user/pattern
       - MONGO_USER=admin
       - MONGO_PASSWORD=P4ssW0rD
       - MONGO_PORT=27017
