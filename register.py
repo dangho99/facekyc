@@ -9,7 +9,7 @@ import io
 
 
 def generate():
-    url = "https://192.168.0.2:8999/api/user/pattern"
+    url = "https://localhost:8999/api/user/pattern"
     data_dir = "data"
 
     for user_dir in os.listdir(data_dir):
