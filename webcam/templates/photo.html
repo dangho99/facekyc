@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<style>
+    /* Center the loader */
+    #loader {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 1;
+        width: 120px;
+        height: 120px;
+        margin: -76px 0 0 -76px;
+        border: 16px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 16px solid #3498db;
+        -webkit-animation: spin 2s linear infinite;
+        animation: spin 2s linear infinite;
+    }
+    
+    .no_padding {
+        padding:0px !important;
+    }
+    
+    .no_margin {
+        margin:0px !important;
+    }
+    
+    @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Add animation to "page content" */
+    .animate-bottom {
+        position: relative;
+        -webkit-animation-name: animatebottom;
+        -webkit-animation-duration: 1s;
+        animation-name: animatebottom;
+        animation-duration: 1s
+    }
+    
+    @-webkit-keyframes animatebottom {
+        from { bottom:-100px; opacity:0 }
+        to { bottom:0px; opacity:1 }
+    }
+    
+    @keyframes animatebottom {
+        from{ bottom:-100px; opacity:0 }
+        to{ bottom:0; opacity:1 }
+    }
+    
+    #myDiv {
+        display: none;
+        text-align: center;
+    }
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0 4px;
+    }
+    /* Create two equal columns that sits next to each other */
+    .column {
+        flex: 50%;
+        padding: 0 4px;
+    }
+    .column img {
+        margin-top: 8px;
+        vertical-align: middle;
+    }
+</style>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/font-awesome.min.css">
+    <title>Photo Management</title>
+</head>
+
+<body>
+    <h2 align="center">Welcome <%= zcfg_requester_address_email %> to Gallery! </h2>
+    <h3>1. Face Registration </h3>
+    <% face_registration.forEach(function(image) { %>
+        <img src="data:image/jpeg;base64,<%=image%>" />
+    <% }); %>
+    <br/><br/>
+    <h3>2. Face Verification </h3>
+    <% if (face_verification.length) { %>
+        <p>First seen: <%= face_verification[0].datetime %>, 
+        Last seen: <%= face_verification[face_verification.length - 1].datetime %> </p>
+        <% face_verification.forEach(function(log) { %>
+            <img src="data:image/jpeg;base64,<%=log.face_images%>" />
+        <% });
+    } %>
+    <h3>3. Score Distribution</h3>
+    <img src="data:image/jpeg;base64,<%=face_score%>" />
+    <br/>
+</body>
+</html>

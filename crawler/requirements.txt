@@ -1,0 +1,7 @@
+xmltodict
+requests
+redis
+pandas
+tqdm
+pymongo
+loguru

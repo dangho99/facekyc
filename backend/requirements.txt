@@ -1,0 +1,15 @@
+numpy
+requests
+Flask
+Werkzeug
+faiss-cpu
+redis
+tqdm
+pymongo
+flask-cors
+pyOpenSSL
+Flask-SocketIO
+Pillow
+scikit-learn
+loguru
+matplotlib

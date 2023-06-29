@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<title>Security Camera</title>
+<html>
+<body>
+<style type="text/css">
+    #image, #alternative {
+        width: 100vw; /* Could also use width: 100%; */
+        height: 100vh;
+        object-fit: cover;
+        position: fixed; /* Change position to absolute if you don't want it to take up the whole page */
+        left: 0px;
+        top: 0px;
+        z-index: -1;
+        -moz-transform: scaleX(-1);
+        -o-transform: scaleX(-1);
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+    }
+    th, td {
+        border-radius: 5px;
+        text-align: right;
+    }
+    input {
+        text-align: center; 
+    }
+    #user_info_G1 { bottom:5px; left:5px; position: fixed;}
+    #user_info_G2 { bottom:5px; left:50%; transform: translate(-50%, 0); position: fixed;}
+    #user_info_G3 { bottom:5px; right:5px; position: fixed;}
+</style>
+
+<img id="image" alt="">
+
+<form action="#" id="user_info_G1" style="background-color:#FFFFFF; border-radius:5px; padding:5px; visibility:hidden;">
+    <table summary="data panel" style='font-family:"Serif"; font-size:16px'>
+    <tr><td>Họ tên: </td><td><input type="text" name="username" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px;'></td></tr>
+    <tr><td>Email: </td><td><input type="text" name="email" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px'></td></tr>
+    <tr><td>Chức vụ: </td><td><input type="text" name="role" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px'></td></tr>
+    <tr><td>Cửa: </td><td><input type="text" name="gate" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px' value="1"></td></tr>
+    </table>
+</form>
+
+<form action="#" id="user_info_G2" style="background-color:#FFFFFF; border-radius:5px; padding:5px; visibility:hidden;">
+    <table summary="data panel" style='font-family:"Serif"; font-size:16px'>
+    <tr><td>Họ tên: </td><td><input type="text" name="username" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px;'></td></tr>
+    <tr><td>Email: </td><td><input type="text" name="email" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px'></td></tr>
+    <tr><td>Chức vụ: </td><td><input type="text" name="role" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px'></td></tr>
+    <tr><td>Cửa: </td><td><input type="text" name="gate" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px' value="2"></td></tr>
+    </table>
+</form>
+
+<form action="#" id="user_info_G3" style="background-color:#FFFFFF; border-radius:5px; padding:5px; visibility:hidden;">
+    <table summary="data panel" style='font-family:"Serif"; font-size:16px'>
+    <tr><td>Họ tên: </td><td><input type="text" name="username" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px;'></td></tr>
+    <tr><td>Email: </td><td><input type="text" name="email" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px'></td></tr>
+    <tr><td>Chức vụ: </td><td><input type="text" name="role" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px'></td></tr>
+    <tr><td>Cửa: </td><td><input type="text" name="gate" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px' value="3"></td></tr>
+    </table>
+</form>
+
+<! --Connecting html page to socket.io -->
+<script src="/socket.io.min.js"></script>
+<script>
+    // Connecting socket.io to localhost
+    const socket = io.connect();
+
+    // listening to the image event in index.js
+    socket.on('image', (data) => {
+        // console.log('data', data);
+
+    // Now we are getting the image and
+    // displaying it via img tag
+    const imageEle = document.getElementById('image');
+
+    // Also we are decoding the base64 encoding
+    // set in javascript file.
+    imageEle.src = 'data:image/jpeg;base64,' + data;
+    });
+
+    var display_time = {
+        'G1': Date.now(),
+        'G2': Date.now(),
+        'G3': Date.now(),
+    };
+    const display_interval = 3000;
+
+    // listening info
+    socket.on('info', (users)=>{
+        for (let i = 0; i < users.length; i++) {
+            user = users[i];
+            console.log(user);
+
+            if (user.gate_location !== undefined) {
+                let user_info = document.getElementById("user_info_G" + user.gate_location);
+                document.getElementById("user_info_G" + user.gate_location).style.visibility = "visible";
+
+                user_info["username"].value = user.zfullname ? user.zfullname : "";
+                user_info["email"].value = user.zcfg_requester_address_email ? user.zcfg_requester_address_email: "";
+                user_info["role"].value = user.zcfg_requester_position ? user.zcfg_requester_position : "";
+
+                display_time["G" + user.gate_location] = Date.now();
+            }
+        }
+    });
+
+    // Hidden after interval
+    async function toggle() {
+        if (Date.now() - display_time.G1 >= display_interval) {
+            document.getElementById("user_info_G1").style.visibility = "hidden";
+        }
+        if (Date.now() - display_time.G2 >= display_interval) {
+            document.getElementById("user_info_G2").style.visibility = "hidden";
+        }
+        if (Date.now() - display_time.G3 >= display_interval) {
+            document.getElementById("user_info_G3").style.visibility = "hidden";
+        }
+    }
+    setInterval(toggle, display_interval/10);
+
+</script>
+
+</body>
+
+</html>

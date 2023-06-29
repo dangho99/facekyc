@@ -1,0 +1,8 @@
+requests
+flask
+Werkzeug
+flask-cors
+shapely
+geos
+loguru
+scikit-image

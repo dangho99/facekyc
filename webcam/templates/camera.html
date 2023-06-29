@@ -1,0 +1,201 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Camera</title>
+    <link rel="stylesheet" href="/static/css/all.css">
+    <link id="favicon" rel="icon" type="image/x-icon" href="/static/images/favicon.ico">
+    <script async src="/static/js/opencv.js" onload="openCvReady();"></script>
+    <script src="/static/js/utils.js"></script>
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+</head>
+
+<style type="text/css">
+    #cam_input, #alternative {
+        width: 100vw; /* Could also use width: 100%; */
+        height: 100vh;
+        object-fit: cover;
+        position: fixed; /* Change position to absolute if you don't want it to take up the whole page */
+        left: 0px;
+        top: 0px;
+        z-index: -1;
+        -moz-transform: scaleX(-1);
+        -o-transform: scaleX(-1);
+        -webkit-transform: scaleX(-1);
+        transform: scaleX(-1);
+    }
+    #canvas_output, #alternative {
+        width: 100vw; /* Could also use width: 100%; */
+        height: 100vh;
+        object-fit: cover;
+        position: fixed; /* Change position to absolute if you don't want it to take up the whole page */
+        left: 0px;
+        top: 0px;
+        z-index: -1;
+    }
+    #user_info { bottom:10px; right:10px; position:fixed; }
+    th, td {
+        border-radius: 5px;
+        text-align: right;
+    }
+    input {
+        text-align: center; 
+    }
+    #contento:-webkit-full-screen {
+        width: 100%;
+        height: 100%;
+    }
+    #contento:-moz-full-screen {
+        width: 100%;
+        height: 100%;
+    }
+    #compress { position:fixed;right:10px;top:10px;visibility:hidden;}
+    #expand { position:fixed;right:10px;top:10px;}
+    .centered {
+        position: absolute;
+        margin: auto;
+        top: 0;
+        right: 0;
+        bottom: 10vh;
+        left: 0;
+        width: 400px;
+        height: 400px;
+        z-index: 1;
+        border: 2px solid green;
+    }
+</style>
+
+<body id="contento">
+    <button id="expand" onclick="openFullscreen('contento'); return false">
+        <i class="fa-solid fa-expand"></i>
+    </button>
+    <button id="compress" onclick="closeFullscreen(); return false">
+        <i class="fa-solid fa-compress"></i>
+    </button>
+    <form action="#" id="user_info" style="background-color:#FFFFFF; border-radius:5px; padding:5px;">
+        <table summary="data panel" style='font-family:"Serif"; font-size:16px'>
+        <tr><td>Họ tên: </td><td><input type="text" name="username" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px;'></td></tr>
+        <tr><td>Email: </td><td><input type="text" name="email" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px'></td></tr>
+        <tr><td>Chức vụ: </td><td><input type="text" name="role" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px'></td></tr>
+        <tr><td>Cửa: </td><td><input id="gate" type="text" name="gate" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px' value="<%= gate_id %>"></td></tr>
+        </table>
+    </form>
+    <video id="cam_input"></video>
+    <canvas id="canvas_output" style="display:none;"></canvas>
+    <div id="boundingBox" class="centered"></div>
+</body>
+
+<script>
+    const output_fps = 0.65;
+    const display_interval = 3000;
+    var display_time = Date.now();
+
+    function openCvReady() {
+        cv['onRuntimeInitialized']=()=>{
+            var video = document.getElementById("cam_input"); // video is the id of video tag
+            video.height = screen.availHeight;
+            video.width = screen.availWidth;
+
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(function(err) {
+                console.log("An error occurred! " + err);
+            });
+
+            // Looping
+            setInterval(async() => {
+                
+                // Prepare image
+                var canvas = document.getElementById('canvas_output');
+                var ctx = canvas.getContext('2d');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0);
+                const base64Canvas = canvas_output.toDataURL("image/jpeg").split(';base64,')[1];
+                // console.log(canvas.width, canvas.height);
+                // console.log(base64Canvas);
+
+                // Fetch
+                const temp_info = document.getElementById("user_info");
+                if (!temp_info['email'].value) {
+                    try {
+                        let response = await fetch("/api/predict", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json", "Cache-Control": "no-cache"},
+                            body: JSON.stringify({
+                                images: [base64Canvas],
+                                gate_id: document.getElementById("gate").value
+                            })
+                        })
+                        let users = await response.json();
+                        let current_time = new Date().toLocaleString('en-US', { hourCycle: 'h23'})
+                        console.log('Time:', current_time, 'Prediction:', users);
+
+                        if (users.length) {
+                            // Show info
+                            user = users[0];
+                            const user_info = document.getElementById("user_info");
+                            user_info["username"].value = user.zfullname ? user.zfullname : "";
+                            user_info["email"].value = user.zcfg_requester_address_email ? user.zcfg_requester_address_email: "";
+                            user_info["role"].value = user.zcfg_requester_position ? user.zcfg_requester_position : "";
+                            display_time = Date.now();
+                        }
+                    } catch (error) {
+                        console.log(error);
+                    }
+                }
+            }, 1000/output_fps);
+        }
+    }
+
+    // Open Fullscreen
+    function openFullscreen(id) {
+        var element = document.getElementById(id);
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullScreen) {
+            element.webkitRequestFullScreen();
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen();
+        }
+        // When fullscreen -> show minimize icon
+        document.getElementById("compress").style.visibility = "visible";
+        // When fullscreen -> hide all components
+        document.getElementById("expand").style.visibility = "hidden";
+    }
+
+    // Close Fullscreen
+    function closeFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozExitFullScreen) {
+            document.mozExitFullScreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+        // When minimize -> hide minimize icon
+        document.getElementById("compress").style.visibility = "hidden";
+        // When minimize -> show all components
+        document.getElementById("expand").style.visibility = "visible";
+    }
+
+    // Hidden after interval
+    async function toggle() {
+        if (Date.now() - display_time >= display_interval) {
+            user_info["username"].value = "";
+            user_info["email"].value = "";
+            user_info["role"].value = "";
+        }
+    }
+    setInterval(toggle, display_interval/10);
+
+</script>
+</html>
+
