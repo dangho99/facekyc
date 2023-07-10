@@ -3,6 +3,7 @@ flask
 Werkzeug
 flask-cors
 shapely
+onnxruntime
 geos
 loguru
 scikit-image

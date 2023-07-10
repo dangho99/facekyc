@@ -3,7 +3,10 @@
 1. Requirements:
 
 Jetpack 4.6.2
+
 Ubuntu 18.04
+
+Ansible: https://hub.docker.com/layers/cytopia/ansible/2.10/images/sha256-3cb4159ef8585bd5bea72177557266ee7e0ec281d219d7221cdb95d70456ed00?context=explore
 
 2. Model:
 
