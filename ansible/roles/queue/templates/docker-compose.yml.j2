@@ -1,0 +1,11 @@
+version: "3.2"
+
+services:
+  {{ queue.redis.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ queue.redis.image }}
+    container_name: {{ queue.redis.service_name }}
+    network_mode: host
+    restart: always

@@ -8,9 +8,10 @@ import pandas as pd
 from tqdm import tqdm
 from logger import logger
 from datetime import datetime
+from collections import defaultdict
 from connection import connect_redis
 from utils import get_data, post_data
-from utils import contact_fields, cr_fields
+from utils import contact_fields, cr_fields, mapping_cr_fields
 from utils import config, check_valid_user, validate_access_key
 
 
@@ -50,7 +51,7 @@ def get_contact_data(url=None, **kwargs):
         'zcfg_requester_phone_number',
         'zcfg_requester_address_email',
         'zcfg_requester_id_passport',
-        'zcfg_requester_position'
+        'zcfg_requester_postion'
     ]
 
     """
@@ -89,13 +90,13 @@ def get_contact_data(url=None, **kwargs):
             user_data[field] = item.get(field, "")
 
         # Adds: Default the status of user is True: if the user is staff, active is True and vice versa
-        if user_data.get("zcfg_requester_address_email").endswith("@telehouse.vn"):
-            user_data["active"] = True
-        else:
-            user_data["active"] = False
+        # if user_data.get("zcfg_requester_address_email").endswith("@telehouse.vn"):
+        #     user_data["active"] = True
+        # else:
+        #     user_data["active"] = False
 
         # Assign the value of field: zfullname
-        if (user_data.get("zfullname", "") is None) and (user_data.get("zcfg_requester_comboname", "") is not None):
+        if (user_data.get("zfullname") is None) and (user_data.get("zcfg_requester_comboname") is not None):
             user_data["zfullname"] = user_data["zcfg_requester_comboname"]
 
         contact_data.append(user_data)
@@ -123,10 +124,12 @@ def get_cr_data(url=None, **kwargs):
         'zcfg_requester_phone_number',
         'zcfg_requester_address_email',
         'zcfg_requester_id_passport',
-        'zcfg_requester_position',
+        'zcfg_requester_postion',
         'zstart_date',
         'zend_date',
-        'ztask'
+        'ztask',
+        'zfloor_third',
+        'zfloor_fourth'
     ]
     # Requried_fields include a field: id which adds in following.
 
@@ -154,32 +157,27 @@ def get_cr_data(url=None, **kwargs):
             'zcfg_requester_phone_number': <str>,
             'zcfg_requester_address_email': <str>,
             'zcfg_requester_id_passport': <str>,
-            'zcfg_requester_position': <str>,
+            'zcfg_requester_postion': <str>,
             'zstart_date': <str>,
             'zend_date': <str>,
-            'ztask': <str>
-            'active': <bool>
+            'ztask': <str>,
+            'active': <bool>,
+            'zfloor_third': <str>,
+            'zfloor_fourth': <str>
         }
         """
 
         cr_item = {"cr_id": item.get("@id", ""), "user_id": item.get("customer", "").get("@id", "")}
 
         for field in requrired_fields:
-            cr_item[field] = item.get(field, "")
+            if field in ['zfloor_third', 'zfloor_fourth', 'zstart_date', 'zend_date']:
+                cr_item[field] = int(item.get(field, "0"))  # force int type
+            else:
+                cr_item[field] = item.get(field, "")
 
         # Assign the value of field: zfullname by zcfg_requester_comboname
         if (cr_item.get("zcfg_requester_comboname") is not None) and (cr_item.get("zfullname") is None):
             cr_item["zfullname"] = cr_item["zcfg_requester_comboname"]
-
-        # Get the status of active of user
-        if cr_item.get("zcfg_requester_address_email").endswith("@telehouse.vn"):
-            cr_item["active"] = True
-        elif not cr_item.get("zend_date"):
-            cr_item["active"] = False
-        elif int(cr_item.get("zend_date")) >= int(time.time()):
-            cr_item["active"] = True
-        else:
-            cr_item["active"] = False
 
         cr_data.append(cr_item)
 
@@ -187,7 +185,7 @@ def get_cr_data(url=None, **kwargs):
 
 
 # 4. GET mapping between CNT vs CR
-def get_mapping_cnt_to_cr(url=None, **kwargs):
+def get_mapping_cnt_to_cr(url=None, id_cr=None, **kwargs):
     """
     @params:
         - url: api
@@ -197,9 +195,13 @@ def get_mapping_cnt_to_cr(url=None, **kwargs):
     """
     map_cnt_cr = []
     if url is None:
-        url = "https://telehouse.hypersd.vn:8050/caisd-rest/zlrel_cr_cnt/?WC=cr='cr:{id_cr}'"
+        url = f"https://telehouse.hypersd.vn:8050/caisd-rest/zlrel_cr_cnt/?WC=cr='cr:{id_cr}'"
+    else:
+        url = url.format(id_cr=id_cr)
 
-    return map_cnt_cr
+    response = get_data(url=url, **kwargs)
+
+    return response
 
 
 # 5. GET Image Attachment CNT
@@ -300,9 +302,54 @@ def register(url="https://localhost:8999/api/user/pattern", payload=None):
         resp = requests.post(url=url, json=payload, verify=False)
         return resp.json()
     except Exception as e:
-        logger.debug("Didn't register the user caused by: ", e)
+        logger.debug("Didn't register the user caused by: {}".format(e))
         return {"status_code": 500, "message": "Didn't register the user to Kotora Sever caused by: {}".format(e)}
 
+# Added by: Lochb
+def get_cr_status(cr_df: pd.DataFrame, contact_df: pd.DataFrame, params=None, **kwargs):
+    status = defaultdict(lambda: defaultdict(int))
+    users = defaultdict(lambda: defaultdict(str))
+
+    for user_id, sub_df in contact_df.groupby("id"):
+        users[user_id] = sub_df.iloc[0].to_dict()
+
+    # logger.info("USERS: {}".format(users))
+
+    for user_id, sub_df in cr_df.groupby("user_id"):
+        sub_df: pd.DataFrame
+        sub_df = sub_df.sort_values(by="zend_date", ascending=False)
+        user_status = sub_df[["zend_date", "zfloor_third", "zfloor_fourth", "zcfg_requester_address_email", "cr_id"]].iloc[0].to_dict()
+        status[user_id] = user_status
+
+        # mapping cr
+        map_cnt_cr = get_mapping_cnt_to_cr(
+            url=params.get('data_center').get('mapping_cnt_to_cr_url'),
+            id_cr=user_status['cr_id'], **kwargs
+        )
+        map_cnt_cr = map_cnt_cr.get('collection_zlrel_cr_cnt').get('zlrel_cr_cnt')
+
+        if isinstance(map_cnt_cr, dict):
+            map_id = map_cnt_cr.get('cnt').get("@id")
+            if not map_id:
+                continue
+            map_user_id = users.get(map_id)
+            if not map_user_id:
+                continue
+            # append map user
+            status[map_user_id.get('id')] = user_status
+
+        elif isinstance(map_cnt_cr, list):
+            for doc in map_cnt_cr:
+                map_id = doc.get('cnt').get("@id")
+                if not map_id:
+                    continue
+                map_user_id = users.get(map_id)
+                if not map_user_id:
+                    continue
+                # append map user
+                status[map_user_id.get('id')] = user_status
+
+    return status
 
 def execute(window_time=3600):
     """
@@ -314,6 +361,7 @@ def execute(window_time=3600):
     params = config()
     # Update the value of window_time param
     window_time = int(params.get("system").get("window_time"))
+    owner = params.get("data_center").get("owner", "telehouse.vn")
 
     # Initialize connection to redis server
     # redis_conn = connect_redis()
@@ -346,30 +394,9 @@ def execute(window_time=3600):
                 body={"mode": "raw", "raw": "<rest_access/>"}
             )
 
-        """SYNC DATA FOR: CUSTOMER REGISTER (CR)"""
-        # 3: GET CR
-        cr_data = get_cr_data(
-            url=params.get("data_center").get("cr_data_url", ""),
-            headers={
-                "X-AccessKey": access_key,
-                "X-Obj-Attrs": cr_fields
-            },
-            params={
-                "WC": "category='pcat:400491'",
-                "size": "10000"
-            }
-        )
-        # Process cr_data => Determine the status of customer
-        cr_df = pd.DataFrame(cr_data)
-        active_cr_data = cr_df.groupby("user_id").apply(lambda sub_df: any(sub_df["active"].values.tolist())).to_dict()
-        # active_cr_data = {
-        #   "<user_id>": <active>       # active is True or False
-        # }
-
-        # 4: GET MAPPING CNT TO CR --> DON'T USE !
         """SYNC DATA FOR: CONTACT"""
         logger.info("STARTING GET CONTACT DATA FROM DC BACKEND...")
-        # 5: GET the contact data from DC Sever
+        # 3: GET the contact data from DC Sever
         contact_data = get_contact_data(
             url=params.get("data_center").get("cnt_data_url", ""),
             headers={
@@ -385,7 +412,35 @@ def execute(window_time=3600):
             time.sleep(window_time)
             continue
 
+        contact_df = pd.DataFrame(contact_data)
         logger.info("SUCCESSFULLY THE GIVEN CONTACT DATA!")
+
+        """SYNC DATA FOR: CUSTOMER REGISTER (CR)"""
+        # 4: GET CR
+        cr_data = get_cr_data(
+            url=params.get("data_center").get("cr_data_url", ""),
+            headers={
+                "X-AccessKey": access_key,
+                "X-Obj-Attrs": cr_fields
+            },
+            params={
+                "WC": "category='pcat:400491'",
+                "size": "10000"
+            }
+        )
+        # 5: GET MAPPING CNT TO CR => Determine the status of customer
+        cr_df = pd.DataFrame(cr_data)
+        cr_status = get_cr_status(
+            cr_df, contact_df, params, headers={
+                "X-AccessKey": access_key,
+                "X-Obj-Attrs": mapping_cr_fields
+            }
+        )
+        # logger.info("STATUS: {}".format(cr_status))
+
+        for each_cr, each_cr_data in cr_status.items():
+            logger.info("CR Data: {}, Mapping id: {}".format(each_cr_data, each_cr))
+
         # 6: GET the id file which is name of image
         logger.info("STARTING GET THE ID FILE IMAGE AND IMAGE DATA OF USERS")
         for user_data in contact_data:
@@ -433,8 +488,18 @@ def execute(window_time=3600):
                 user_data["images"].append(image)
 
             """ADDS MECHANISM TO DETERMINE STATUS OF USER_DATA (ACTIVE) THROUGH (START_DATE & END_DATE)"""
-            if id in active_cr_data:
-                user_data["active"] = any([user_data["active"], active_cr_data[id]])
+
+            if user_data.get("zcfg_requester_address_email").endswith(owner):
+                user_data['active'] = True
+                user_data['zfloor_third'] = True
+                user_data['zfloor_fourth'] = True
+            else:
+                user_data['active'] = bool(cr_status[id]['zend_date'] > int(time.time()))
+                user_data['zfloor_third'] = bool(cr_status[id]['zfloor_third'] == 1)
+                user_data['zfloor_fourth'] = bool(cr_status[id]['zfloor_fourth'] == 1)
+
+            # Fix typo postion -> position
+            user_data['zcfg_requester_position'] = user_data.get('zcfg_requester_postion', '')
 
             # Check the user data includes the required information
             is_valid_user = check_valid_user(user_data)
@@ -450,6 +515,9 @@ def execute(window_time=3600):
             # 8.2: Register the user by calling api register in BE
             # Adds: Call to api: register
             logger.info("Registering the user to BE...")
+            # logger.info("Register payload: {}".format({k: v for k, v in user_data.items() if k != "images"}))
+            # continue
+
             resp = register(url=params["system"]["register_api"], payload=user_data)
             logger.info(json.dumps(resp))
 

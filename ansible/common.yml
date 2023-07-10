@@ -1,0 +1,15 @@
+- name: Be prepare
+  hosts: backend:jetson
+  tasks:
+    - include_role:
+        name: common
+        tasks_from: put_common_file
+  become: true
+
+- name: Create docker network
+  hosts: backend
+  tasks:
+    - include_role:
+        name: common
+        tasks_from: create_docker_net
+  become: true

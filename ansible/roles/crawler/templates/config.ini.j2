@@ -1,0 +1,23 @@
+[redis]
+host=0.0.0.0
+port={{ queue.redis.port }}
+db=0
+queue=sync_queue
+
+[mongodb]
+url=mongodb://{{ database.mongodb.username }}:{{ database.mongodb.password }}@{{ hostvars['backend']['ansible_host'] }}:{{ database.mongodb.port }}/kotora
+
+[system]
+window_time={{ crawler.window_time }}
+register_api=https://{{ hostvars['backend']['ansible_host'] }}:{{ backend.master.port }}/{{ backend.endpoint }}
+
+[data_center]
+username={{ crawler.username }}
+password={{ crawler.password }}
+access_key_url={{ crawler.access_key_url }}
+cnt_data_url={{ crawler.cnt_data_url }}
+cr_data_url={{ crawler.cr_data_url }}
+id_file_url={{ crawler.id_file_url }}
+mapping_cnt_to_cr_url={{ crawler.mapping_cnt_to_cr_url }}
+image_data_url={{ crawler.image_data_url }}
+owner={{ tenant }}

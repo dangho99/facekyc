@@ -52,7 +52,8 @@ class ArcFaceONNX:
         self.output_shape = outputs[0].shape
 
     def prepare(self, ctx_id, **kwargs):
-        self.session.set_providers(['CPUExecutionProvider'])
+        if ctx_id < 0:
+            self.session.set_providers(['CPUExecutionProvider'])
 
     def get(self, img, kps):
         aimg = face_align.norm_crop(img, landmark=kps, image_size=self.input_size[0])

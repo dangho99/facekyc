@@ -79,6 +79,9 @@ setInterval(async () => {
             rejectUnauthorized: false,
             url: constants.CAM_CHECKOUT.model_api,
             method: 'PUT',
+            headers: {
+                Authorization: 'Bearer ' + constants.ACCESS_TOKEN
+            },
             json: {
                 images: [cv.imencode('.jpg', infer_frame).toString('base64')],
                 cam_config: constants.CAM_CHECKOUT,
@@ -86,8 +89,14 @@ setInterval(async () => {
           }, function(error, response, body){
             let current_time = new Date().toLocaleString('en-US', { hourCycle: 'h23'})
             if (error == null) {
-                console.log("Time:", current_time, "Prediction:", body.response);
-                io.emit('info', body.response);
+                if (response.statusCode == 200) {
+                    console.log("Time:", current_time, "Prediction:", body.response);
+                    io.emit('info', body.response);
+                }
+                else if (response.statusCode == 401) {
+                    console.log("Time:", current_time, "Prediction:", 'No License!');
+                    io.emit('info', [{zfullname: 'No License!'}])
+                }
             }
           });
     } catch (error) {

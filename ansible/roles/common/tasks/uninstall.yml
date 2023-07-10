@@ -1,0 +1,33 @@
+- name: Delete services
+  shell: |
+    docker rm -f $(docker ps -a --filter label="{{ docker.package }}" | tr -s ' ' | cut -d ' ' -f 1)
+  ignore_errors: True
+
+- name: Prune everything
+  shell: |
+    docker network prune --force
+    docker volume prune --force
+  ignore_errors: True
+
+- name: Delete network
+  shell: |
+    docker network rm "{{ docker.package }}-net"
+  ignore_errors: True
+
+- name: Get backup version
+  shell: |
+    ls "{{ remote_install_path }}/.." | grep "{{ docker.package }}" | wc -l
+  register: backup_version
+
+- name: Backup data
+  become: yes
+  copy:
+    remote_src: yes
+    src: "{{ remote_install_path }}/"
+    dest: "{{ remote_install_path }}_old_v{{ backup_version.stdout }}"
+  ignore_errors: True
+
+- name: Delete old data
+  file:
+    path: "{{ remote_install_path }}"
+    state: absent

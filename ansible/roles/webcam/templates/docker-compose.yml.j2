@@ -1,0 +1,16 @@
+version: "3.2"
+
+services:
+  {{ webcam.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ webcam.image }}
+    container_name: {{ webcam.service_name }}
+    restart: always
+    network_mode: host
+    volumes:
+      - ./certs:/app/certs
+      - ./uploads:/app/uploads
+      - ./constants.js:/app/constants.js
+    entrypoint: ["node", "server.js"]

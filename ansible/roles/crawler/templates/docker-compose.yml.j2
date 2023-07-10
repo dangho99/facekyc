@@ -1,0 +1,13 @@
+version: "3.2"
+
+services:
+  {{ crawler.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ crawler.image }}
+    container_name: {{ crawler.service_name }}
+    network_mode: host
+    volumes:
+      - ./config.ini:/app/system_env/config.ini
+    restart: always

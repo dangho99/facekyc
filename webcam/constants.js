@@ -1,4 +1,5 @@
 module.exports = Object.freeze({
+    ACCESS_TOKEN: '',
     MODEL_API: 'https://127.0.0.1:8501/api/user/pattern',
     MODEL_API_WORKER: 'https://127.0.0.1:8500/api/user/pattern',
     TIMEOUT_API: 3000,
@@ -14,5 +15,6 @@ module.exports = Object.freeze({
         'face_minsize': 80,
         'intruder_score': 1.0,
         'matched_score': 0.7,
+        'location': 'zfloor_fourth'
     }
 });

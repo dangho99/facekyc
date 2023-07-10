@@ -1,0 +1,3 @@
+- name: Show host
+  debug:
+    msg: "{{ ansible_host }}"

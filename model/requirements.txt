@@ -6,3 +6,5 @@ shapely
 geos
 loguru
 scikit-image
+Flask-JWT-Extended
+Flask-Bcrypt

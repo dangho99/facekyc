@@ -1,5 +1,7 @@
 module.exports = Object.freeze({
 
+    ACCESS_TOKEN: '',
+
     CAM_CHECKIN: {
         'model_api': 'https://10.20.3.189:8501/api/user/pattern',
         'url': 'rtsp://admin:kotora2023@10.20.3.187:554/ch01/0',
@@ -11,7 +13,8 @@ module.exports = Object.freeze({
         'face_minsize': 70,
         'intruder_score': 0.8,
         'matched_score': 0.70,
-        'output_fps': 0.65
+        'output_fps': 0.65,
+        'location': 'zfloor_third'
     },
 
     CAM_CHECKOUT: {
@@ -23,7 +26,8 @@ module.exports = Object.freeze({
         'face_minsize': 50,
         'intruder_score': 0.8,
         'matched_score': 0.70,
-        'output_fps': 0.65
+        'output_fps': 0.65,
+        'location': 'zfloor_third'
     },
 
     INPUT_WIDTH: 1920,

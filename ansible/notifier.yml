@@ -1,0 +1,7 @@
+- name: Notification install
+  hosts: jetson3
+  become: true
+  tasks:
+    - include_role:
+        name: notifier
+        tasks_from: install

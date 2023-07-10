@@ -1,0 +1,35 @@
+- name: Create {{ database.mongodb.compose_dir }} if it's not exists
+  file:
+    path: "{{ database.mongodb.compose_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Create {{ database.mongodb.compose_dir }}/docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ database.mongodb.compose_dir }}/docker-compose.yml"
+
+- name: Move {{ database.mongodb.compose_dir }}/ directory
+  file:
+    path: "{{ database.mongodb.compose_dir }}/{{ item.path }}"
+    state: directory
+    mode: "{{ item.mode }}"
+  with_filetree: ../files/mongodb
+  when: item.state == 'directory'
+
+- name: Move {{ database.mongodb.compose_dir }}/ files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ database.mongodb.compose_dir }}/{{ item.path }}"
+    mode: "{{ item.mode }}"
+  with_filetree: ../files/mongodb
+  when: item.state == 'file'
+
+- name: Up DB mongodb service
+  shell:
+    cmd: docker-compose up -d
+    chdir: "{{ database.mongodb.compose_dir }}"
+
+- name: Wait {{ idle_time }}s for MongoDB up
+  wait_for:
+    timeout: "{{ idle_time }}"

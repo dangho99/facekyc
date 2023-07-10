@@ -1,0 +1,20 @@
+- name: Copy certs
+  copy:
+    src: certs/
+    dest: "{{ backend.compose_dir }}/certs"
+
+- name: Create {{ backend.compose_dir }} if it's not exists
+  file:
+    path: "{{ backend.compose_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Create {{ backend.compose_dir }}/docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ backend.compose_dir }}/docker-compose.yml"
+
+- name: Up backend service
+  shell:
+    cmd: docker-compose up -d
+    chdir: "{{ backend.compose_dir }}"

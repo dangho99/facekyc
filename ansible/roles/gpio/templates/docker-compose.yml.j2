@@ -1,0 +1,16 @@
+version: "3.2"
+
+services:
+  {{ gpio.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ gpio.image }}
+    container_name: {{ gpio.service_name }}
+    restart: always
+    network_mode: host
+    privileged: true
+    volumes:
+      - /dev:/dev
+    environment:
+      - GATE_TIMEOUT={{ gpio_gate_timeout }}

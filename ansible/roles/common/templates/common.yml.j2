@@ -1,0 +1,15 @@
+version: "3.2"
+
+services:
+  common:
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "{{ log.max_size }}"
+        max-file: "{{ log.max_file }}"
+        labels: "program"
+    labels:
+      - "{{ docker.package }}"

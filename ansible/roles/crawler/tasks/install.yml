@@ -1,0 +1,20 @@
+- name: Create {{ crawler.compose_dir }} if it's not exists
+  file:
+    path: "{{ crawler.compose_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Create {{ crawler.compose_dir }}/docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ crawler.compose_dir }}/docker-compose.yml"
+
+- name: Create {{ crawler.compose_dir }}/config.ini file
+  template:
+    src: config.ini.j2
+    dest: "{{ crawler.compose_dir }}/config.ini"
+
+- name: Up crawler casdm service
+  shell:
+    cmd: docker-compose up -d
+    chdir: "{{ crawler.compose_dir }}"

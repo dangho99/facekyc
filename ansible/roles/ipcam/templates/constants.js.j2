@@ -1,0 +1,33 @@
+module.exports = Object.freeze({
+
+    ACCESS_TOKEN: "{{ access_token }}",
+
+    CAM_CHECKIN: {
+        "model_api": "https://{{ hostvars['jetson3']['ansible_host'] }}:{{ model.master.port }}/{{ model.endpoint }}",
+        "url": "{{ ipcam.checkin.url }}",
+        "zone": {{ ipcam.checkin.zone }},
+        "face_minsize": {{ ipcam.checkin.face_minsize }},
+        "intruder_score": {{ ipcam.checkin.intruder_score }},
+        "matched_score": {{ ipcam.checkin.matched_score }},
+        "output_fps": {{ ipcam.checkin.output_fps }},
+        "location": "{{ ipcam.checkin.location }}"
+    },
+
+    CAM_CHECKOUT: {
+        "model_api": "https://{{ hostvars['jetson3']['ansible_host'] }}:{{ model.worker.port }}/{{ model.endpoint }}",
+        "url": "{{ ipcam.checkout.url }}",
+        "zone": {{ ipcam.checkout.zone }},
+        "face_minsize": {{ ipcam.checkout.face_minsize }},
+        "intruder_score": {{ ipcam.checkout.intruder_score }},
+        "matched_score": {{ ipcam.checkout.matched_score }},
+        "output_fps": {{ ipcam.checkout.output_fps }},
+        "location": "{{ ipcam.checkout.location }}"
+    },
+
+    INPUT_WIDTH: {{ ipcam.input_width }},
+    INPUT_HEIGHT: {{ ipcam.input_height }},
+    INPUT_FPS: {{ ipcam.input_fps }},
+
+    OUTPUT_WIDTH: {{ ipcam.output_width }},
+    OUTPUT_HEIGHT: {{ ipcam.output_height }}
+});

@@ -23,12 +23,19 @@
     input {
         text-align: center; 
     }
-    #user_info_G1 { bottom:5px; left:5px; position: fixed;}
+    #user_info_G1 { bottom:5px; right:5px; position: fixed;}
     #user_info_G2 { bottom:5px; left:50%; transform: translate(-50%, 0); position: fixed;}
-    #user_info_G3 { bottom:5px; right:5px; position: fixed;}
+    #user_info_G3 { bottom:5px; left:5px; position: fixed;}
+    #license_info { right:5px; top:5px; position: fixed;}
 </style>
 
 <img id="image" alt="">
+
+<form action="#" id="license_info" style="background-color:#FFFFFF; border-radius:5px; padding:5px; visibility:hidden;">
+    <table summary="data panel" style='font-family:"Serif"; font-size:16px'>
+    <tr><td>License: </td><td><input type="text" name="license" style='border:2px solid #FFFFFF; font-family:"Serif"; font-size:16px; width:200px;'></td></tr>
+    </table>
+</form>
 
 <form action="#" id="user_info_G1" style="background-color:#FFFFFF; border-radius:5px; padding:5px; visibility:hidden;">
     <table summary="data panel" style='font-family:"Serif"; font-size:16px'>
@@ -80,6 +87,7 @@
         'G1': Date.now(),
         'G2': Date.now(),
         'G3': Date.now(),
+        'license': Date.now()
     };
     const display_interval = 3000;
 
@@ -99,6 +107,13 @@
 
                 display_time["G" + user.gate_location] = Date.now();
             }
+
+            if (user.zfullname === "No License!") {
+                let license_info = document.getElementById("license_info");
+                document.getElementById("license_info").style.visibility = "visible";
+                license_info["license"].value = user.zfullname;
+                display_time["license"] = Date.now();
+            }
         }
     });
 
@@ -112,6 +127,9 @@
         }
         if (Date.now() - display_time.G3 >= display_interval) {
             document.getElementById("user_info_G3").style.visibility = "hidden";
+        }
+        if (Date.now() - display_time.license >= display_interval) {
+            document.getElementById("license_info").style.visibility = "hidden";
         }
     }
     setInterval(toggle, display_interval/10);

@@ -39,7 +39,7 @@ model = NeighborSearch.load(temp_dir)
 DUPLICATE_SCORE = float(os.getenv("DUPLICATE_SCORE", "0.98"))
 VISIBLE_FIELDS = os.getenv(
     "VISIBLE_FIELDS",
-    "zfullname,zcfg_requester_address_email,zcfg_requester_position,user_id"
+    "zfullname,zcfg_requester_address_email,zcfg_requester_position,user_id,zfloor_third,zfloor_fourth"
 ).split(',')
 
 
@@ -48,7 +48,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug_mode=True, train_interval=10, t
     CORS(user)
 
     r = redis.Redis(
-        host=api_host,
+        host=os.getenv("REDIS_HOST", api_host),
         port=int(os.getenv("REDIS_PORT", "6379")),
         db=0
     )
@@ -65,7 +65,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug_mode=True, train_interval=10, t
 
     current_time = int(time.time())
     r.set("training_version", current_time)
-    r.set("serving_version", current_time)
+    r.set(f"serving_version_{api_port}", current_time)
 
     @user.route('/api/user/pattern', methods=['POST'])
     def api_register_pattern():
@@ -113,7 +113,10 @@ def run(api_host='0.0.0.0', api_port=8999, debug_mode=True, train_interval=10, t
             try:
                 responses = requests.post(
                     url=os.getenv("MODEL_API", "https://127.0.0.1:8501/api/user/pattern"),
-                    json=images, verify=False, timeout=60
+                    json=images, verify=False, timeout=60,
+                    headers={"Authorization": "Bearer {}".format(
+                        os.getenv("ACCESS_TOKEN", "")
+                    )}
                 )
                 if responses.status_code == 200:
                     responses = json.loads(responses.text)
@@ -222,8 +225,8 @@ def run(api_host='0.0.0.0', api_port=8999, debug_mode=True, train_interval=10, t
         global model
 
         # Reload model
-        if r.get("serving_version") != r.get("training_version"):
-            r.set("serving_version", r.get("training_version"))
+        if r.get(f"serving_version_{api_port}") != r.get("training_version"):
+            r.set(f"serving_version_{api_port}", r.get("training_version"))
             model_version = str(r.get("training_version").decode())
             model = NeighborSearch.load(os.path.join(model_dir, model_version))
             logger.info("Reload model: {} cause: auto train".format(model_version))
@@ -422,7 +425,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug_mode=True, train_interval=10, t
                         data.append(
                             {
                                 'encoding': encoding,
-                                'metadata': {k: v for k, v in res.items() if k in VISIBLE_FIELDS}
+                                'metadata': {k: res.get(k) for k in VISIBLE_FIELDS}
                             }
                         )
 

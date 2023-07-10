@@ -1,0 +1,19 @@
+- import_playbook: common.yml
+
+- import_playbook: database.yml
+
+- import_playbook: queue.yml
+
+- import_playbook: backend.yml
+
+- import_playbook: model.yml
+
+- import_playbook: ipcam.yml
+
+- import_playbook: webcam.yml
+
+- import_playbook: gpio.yml
+
+- import_playbook: crawler.yml
+
+- import_playbook: notifier.yml

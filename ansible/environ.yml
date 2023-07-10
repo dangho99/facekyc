@@ -1,0 +1,7 @@
+- name: Install environment for Backend
+  hosts: backend
+  become: yes
+  tasks:
+    - include_role:
+        name: backend
+        tasks_from: build_env

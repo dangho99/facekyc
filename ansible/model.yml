@@ -1,0 +1,7 @@
+- name: Model install jetson
+  hosts: jetson
+  become: true
+  tasks:
+    - include_role:
+        name: model
+        tasks_from: install

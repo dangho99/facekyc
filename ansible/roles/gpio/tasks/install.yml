@@ -1,0 +1,16 @@
+- name: Create {{ gpio.compose_dir }} if it's not exists
+  file:
+    path: "{{ gpio.compose_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Create {{ gpio.compose_dir }}/docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ gpio.compose_dir }}/docker-compose.yml"
+
+- name: Up gpio service
+  shell:
+    cmd: docker-compose up -d
+    chdir: "{{ gpio.compose_dir }}"
+  ignore_errors: True

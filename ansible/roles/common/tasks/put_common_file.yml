@@ -1,0 +1,10 @@
+- name: Create config directory {{ remote_install_path }} if it does not exists
+  file:
+    path: "{{ remote_install_path }}"
+    state: directory
+    recurse: yes
+
+- name: Config common file (suport file of docker-compose.yml)
+  template:
+    src: common.yml.j2
+    dest: "{{ remote_install_path }}/common.yml"

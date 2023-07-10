@@ -1,0 +1,7 @@
+- name: Webcam install
+  hosts: jetson4
+  become: true
+  tasks:
+    - include_role:
+        name: webcam
+        tasks_from: install

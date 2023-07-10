@@ -1,0 +1,20 @@
+version: "3.2"
+
+services:
+  {{ notifier.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ notifier.image }}
+    container_name: {{ notifier.service_name }}
+    network_mode: host
+    restart: always
+    environment:
+      - INTERVAL={{ notifier.interval_time }}
+      - API_TOKEN={{ notifier.telegram.api_token }}
+      - CHAT_ID={{ notifier.telegram.chat_id }}
+      - ENDPOINT=https://{{ hostvars['backend']['ansible_host'] }}:{{ backend.master.port }},https://{{ hostvars['backend']['ansible_host'] }}:{{ backend.worker.port }},https://{{ hostvars['jetson3']['ansible_host'] }}:{{ model.master.port }},https://{{ hostvars['jetson3']['ansible_host'] }}:{{ model.worker.port }},https://{{ hostvars['jetson4']['ansible_host'] }}:{{ model.master.port }},https://{{ hostvars['jetson4']['ansible_host'] }}:{{ model.worker.port }},https://{{ hostvars['jetson4']['ansible_host'] }}:{{ webcam.port }}
+      - MONGO_USER={{ database.mongodb.username }}
+      - MONGO_PASSWORD={{ database.mongodb.password }}
+      - MONGO_HOST={{ hostvars['backend']['ansible_host'] }}
+      - MONGO_PORT={{ database.mongodb.port }}

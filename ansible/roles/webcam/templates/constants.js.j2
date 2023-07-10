@@ -1,0 +1,21 @@
+module.exports = Object.freeze({
+
+    ACCESS_TOKEN: "{{ access_token }}",
+
+    MODEL_API: "https://{{ hostvars['jetson4']['ansible_host'] }}:{{ model.master.port }}/{{ model.endpoint }}",
+    MODEL_API_WORKER: "https://{{ hostvars['jetson4']['ansible_host'] }}:{{ model.worker.port }}/{{ model.endpoint }}",
+    TIMEOUT_API: 3000,
+
+    BACKEND_API: "https://{{ hostvars['backend']['ansible_host'] }}:{{ backend.master.port }}/{{ backend.endpoint }}",
+
+    STORE_IMAGE: true,
+    NUM_IMAGE: 20,
+
+    CAMERA: {
+        'zone': {{ webcam.zone }},
+        'face_minsize': {{ webcam.face_minsize }},
+        'intruder_score': {{ webcam.intruder_score }},
+        'matched_score': {{ webcam.matched_score }},
+        'location': "{{ webcam.location }}"
+    }
+});

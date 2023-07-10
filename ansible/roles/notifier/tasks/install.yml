@@ -1,0 +1,15 @@
+- name: Create {{ notifier.compose_dir }} if it's not exists
+  file:
+    path: "{{ notifier.compose_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Create {{ notifier.compose_dir }}/docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ notifier.compose_dir }}/docker-compose.yml"
+
+- name: Up notifier service
+  shell:
+    cmd: docker-compose up -d
+    chdir: "{{ notifier.compose_dir }}"

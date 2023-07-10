@@ -1,0 +1,20 @@
+- name: Create {{ ipcam.compose_dir }} if it's not exists
+  file:
+    path: "{{ ipcam.compose_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Create {{ ipcam.compose_dir }}/docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ ipcam.compose_dir }}/docker-compose.yml"
+
+- name: Create {{ ipcam.compose_dir }}/constants.js file
+  template:
+    src: constants.js.j2
+    dest: "{{ ipcam.compose_dir }}/constants.js"
+
+- name: Up ipcam service
+  shell:
+    cmd: docker-compose up -d
+    chdir: "{{ ipcam.compose_dir }}"

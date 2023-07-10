@@ -1,0 +1,41 @@
+version: "3.2"
+
+services:
+  {{ backend.master.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ backend.image }}
+    container_name: {{ backend.master.service_name }}
+    restart: always
+    network_mode: host
+    volumes:
+      - ./certs:/app/certs
+      - ./models:/app/models
+    environment:
+      - MODEL_API=https://{{ hostvars['jetson3']['ansible_host'] }}:{{ model.master.port }}/{{ model.endpoint }}
+      - API_PORT={{ backend.master.port }}
+      - MONGO_USER={{ database.mongodb.username }}
+      - MONGO_PASSWORD={{ database.mongodb.password }}
+      - MODEL_K={{ backend.model_k }}
+      - MODEL_DIM={{ backend.model_dim }}
+      - DUPLICATE_SCORE={{ backend.duplicate_score }}
+      - TRAINABLE=True
+      - ACCESS_TOKEN={{ access_token }}
+
+  {{ backend.worker.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ backend.image }} 
+    container_name: {{ backend.worker.service_name }}
+    restart: always
+    network_mode: host
+    volumes:
+      - ./certs:/app/certs
+      - ./models:/app/models
+    environment:
+      - MODEL_API=https://{{ hostvars['jetson3']['ansible_host'] }}:{{ model.worker.port }}/{{ model.endpoint }}
+      - API_PORT={{ backend.worker.port }}
+      - TRAINABLE=False
+      - ACCESS_TOKEN={{ access_token }}

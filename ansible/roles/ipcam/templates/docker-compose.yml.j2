@@ -1,0 +1,26 @@
+version: "3.2"
+
+services:
+  {{ ipcam.checkin.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ ipcam.image }}
+    container_name: {{ ipcam.checkin.service_name }}
+    restart: always
+    network_mode: host
+    volumes:
+      - ./constants.js:/app/constants.js
+    entrypoint: ["node", "checkin.js"]
+
+  {{ ipcam.checkout.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ ipcam.image }} 
+    container_name: {{ ipcam.checkout.service_name }}
+    restart: always
+    network_mode: host
+    volumes:
+      - ./constants.js:/app/constants.js
+    entrypoint: ["node", "checkout.js"]

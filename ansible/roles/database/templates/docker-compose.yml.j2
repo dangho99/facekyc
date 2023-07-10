@@ -1,0 +1,39 @@
+version: "3.2"
+networks:
+  {{ docker.package }}-net:
+      name: {{ docker.package }}-net
+      external: true
+
+services:
+  {{ database.mongodb.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ database.mongodb.image }}
+    container_name: {{ database.mongodb.service_name }}
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME={{ database.mongodb.username }}
+      - MONGO_INITDB_ROOT_PASSWORD={{ database.mongodb.password }}
+    restart: always
+    ports:
+      - {{ database.mongodb.port }}:27017
+    volumes:
+      - "{{ database.mongodb.compose_dir }}/data:/data/db"
+    networks:
+      - {{ docker.package }}-net
+
+  {{ database.mongoexp.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ database.mongoexp.image }}
+    container_name: {{ database.mongoexp.service_name }}
+    environment:
+      - ME_CONFIG_MONGODB_SERVER={{ database.mongodb.service_name }}
+      - ME_CONFIG_MONGODB_ADMINUSERNAME={{ database.mongodb.username }}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD={{ database.mongodb.password }}
+    restart: always
+    ports:
+      - {{ database.mongoexp.port }}:8081
+    networks:
+      - {{ docker.package }}-net

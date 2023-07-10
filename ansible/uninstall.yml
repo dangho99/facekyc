@@ -1,0 +1,7 @@
+- name: Uninstall
+  hosts: backend:jetson
+  become: true
+  tasks:
+    - include_role:
+        name: common
+        tasks_from: uninstall

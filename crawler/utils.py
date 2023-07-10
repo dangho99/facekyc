@@ -8,22 +8,24 @@ import xmltodict
 # Utility
 contact_fields = "zfullname, zcfg_requester_comboname, zcfg_requester_address_email, " \
                  "zcfg_requester_id_passport, zcfg_requester_address, zcfg_requester_card_number, " \
-                 "zcfg_requester_organization, zcfg_requester_phone_number, zcfg_requester_position, zapprover"
+                 "zcfg_requester_organization, zcfg_requester_phone_number, zcfg_requester_postion, zapprover"
 
 cr_fields = "category, zfullname, zcfg_requester_comboname, zcfg_requester_address_email, " \
             "zcfg_requester_id_passport, zcfg_requester_address, zcfg_requester_card_number, " \
-            "zcfg_requester_organization, zcfg_requester_phone_number, zcfg_requester_position, " \
+            "zcfg_requester_organization, zcfg_requester_phone_number, zcfg_requester_postion, " \
             "customer, zcfg_requester_access_purpose, zcustomers_with_contract, zcontractors, " \
             "zvisitor, zother, zpnttp, zcfg_meeting_room, zcfg_tape_room, zcfg_corridor, zcfg_customer_area, " \
-            "zcfg_server_room, zcfg_usp_room, zcfg_noc_room, zcfg_network_room, zNeed_Tiv_support, " \
+            "zfloor_third, zfloor_fourth, zcfg_server_room, zcfg_usp_room, zcfg_noc_room, zcfg_network_room, zNeed_Tiv_support, " \
             "zstart_date, zend_date, ztask"
+
+mapping_cr_fields = "cnt, zcfg_requester_address_email"
 
 # required_fields = ['zfullname',
 #                    'zcfg_requester_comboname',
 #                    'zcfg_requester_phone_number',
 #                    'zcfg_requester_address_email',
 #                    'zcfg_requester_id_passport',
-#                    'zcfg_requester_position']
+#                    'zcfg_requester_postion']
 
 
 # Call API to get data using method GET

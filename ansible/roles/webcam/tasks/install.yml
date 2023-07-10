@@ -1,0 +1,25 @@
+- name: Copy certs
+  copy:
+    src: certs/
+    dest: "{{ webcam.compose_dir }}/certs"
+
+- name: Create {{ webcam.compose_dir }} if it's not exists
+  file:
+    path: "{{ webcam.compose_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Create {{ webcam.compose_dir }}/docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ webcam.compose_dir }}/docker-compose.yml"
+
+- name: Create {{ webcam.compose_dir }}/constants.js file
+  template:
+    src: constants.js.j2
+    dest: "{{ webcam.compose_dir }}/constants.js"
+
+- name: Up webcam service
+  shell:
+    cmd: docker-compose up -d
+    chdir: "{{ webcam.compose_dir }}"

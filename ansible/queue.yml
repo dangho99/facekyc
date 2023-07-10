@@ -1,0 +1,7 @@
+- name: Message queue install
+  hosts: backend:jetson
+  become: true
+  tasks:
+    - include_role:
+        name: queue
+        tasks_from: install

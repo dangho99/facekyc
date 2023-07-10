@@ -1,0 +1,7 @@
+- name: Database install
+  hosts: backend
+  become: true
+  tasks:
+    - include_role:
+        name: backend
+        tasks_from: install

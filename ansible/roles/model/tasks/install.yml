@@ -1,0 +1,25 @@
+- name: Copy certs
+  copy:
+    src: certs/
+    dest: "{{ model.compose_dir }}/certs"
+
+- name: Create {{ model.compose_dir }} if it's not exists
+  file:
+    path: "{{ model.compose_dir }}"
+    state: directory
+    recurse: yes
+
+- name: Create {{ model.compose_dir }}/docker-compose.yml file
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ model.compose_dir }}/docker-compose.yml"
+
+- name: Up model service
+  shell:
+    cmd: docker-compose up -d
+    chdir: "{{ model.compose_dir }}"
+  ignore_errors: True
+
+- name: Wait {{ idle_time }}s for Model up
+  wait_for:
+    timeout: "{{ idle_time }}"

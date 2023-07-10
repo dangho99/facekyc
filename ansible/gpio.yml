@@ -1,0 +1,7 @@
+- name: GPIO Interface install
+  hosts: jetson
+  become: true
+  tasks:
+    - include_role:
+        name: gpio
+        tasks_from: install

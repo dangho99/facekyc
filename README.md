@@ -1,4 +1,4 @@
-# FaceID System for Telehouse
+# Facekyc System
 
 1. Requirements:
 
@@ -12,3 +12,10 @@ https://drive.google.com/drive/folders/1--zvZ-iyehbBELVMtnF-dhYjcU7LS1G_?usp=sha
 3. Install:
 
 https://docs.google.com/document/d/1VppJnQyTZCHMMNsLZOoBvM8zU5x9WtnHDzttlOkJLD8/edit#heading=h.wcvymu96auhk
+
+# Reference
+
+1. Load model:
+
+https://github.com/serengil/deepface/blob/master/deepface/DeepFace.py
+

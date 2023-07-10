@@ -1,0 +1,136 @@
+docker:
+  maintainer: hoangph3
+  package: facekyc
+  compose_version: v2.4.1
+
+remote_install_path: "/opt/{{ docker.package }}"
+access_token: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTY4ODk1MjY5NiwianRpIjoiMTUyNjQ2OTItNWI4YS00ZjJkLWIxYzEtNDZjMTkxZDJlNGE3IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImFkbWluIiwibmJmIjoxNjg4OTUyNjk2LCJleHAiOjE2ODg5NTI5OTZ9.pYdNk_NdkCowQEOFMjojbDG6g8VmoJRjSZ6mWUnh-12-V0K1Bk-qtDYPZHzV4-c2e-OdwX5bNB0G21gZtNiwK5wpXXEH2_nCY2B0zUeXo7IX_nnZ35BkAelstz4NqYshUQa7SLA7eVJ4w4baZcrXoiPK-wS6L-x_PumPR2h6DDAhXU6YMeLEwgHbsyDgDs26aOHXRcdbLdWjGy2J8E0aygubNv75u74G_4Tj0u3cIeBnf5BHHJ6WVBW0RamlCfITYlqZzwPnMLvdd6HCIbHm2GQBnknaEN7PZELFH-4rUhFRpzsbT3HNkWIWvF_b9bKdx9-rsOWkO6Eq-ZrKc9WSZ7wC7Eg5FFmdebJa2Prk2ZMrWYZaO5UVloa47_xWT3CYUTk7yNP3QHKPG5tpdEcqp9ZRN1Ju9qvWzsTD8KRmJqnmr5TrQ91sNz0paQ-P7TZn8hS6GuZJijq4l0-6wYGIMr9sRe0j9WOYo9n9OR4EZnMzBty7wX-wkARQIcck8gCtT46QuhMh_NZzhhAva-J7dEnSVdDf95jMW11CUjIvPxfun6APibZubm2zRdFgjPbBO3gvZJUe9W-8T2-EmFrRcECARDic744HRgIsbo8KaViT6mXxUQFXkNpxhevMq04Gz1q_YKHGWJLOZ9dxAbp-GvK_q5y0ZmlMO6k6atN5JXQ
+idle_time: 10
+tenant: telehouse.vn
+
+log:
+  max_size: 2m
+  max_file: 10
+
+backend:
+  compose_dir: "{{ remote_install_path }}/backend"
+  image: "{{ docker.maintainer }}/{{ docker.package }}-backend:x86_64-3.0.0"
+  endpoint: api/user/pattern
+  model_dim: 512
+  model_k: 10
+  duplicate_score: 0.98
+  master:
+    service_name: "{{ docker.package }}-backend-master"
+    port: 8999
+  worker:
+    service_name: "{{ docker.package }}-backend-worker"
+    port: 8998
+
+model:
+  compose_dir: "{{ remote_install_path }}/model"
+  image: "{{ docker.maintainer }}/{{ docker.package }}-model:aarch64-3.0.0"
+  endpoint: api/user/pattern
+  gate_interval: 3.0
+  check_location: true
+  master:
+    service_name: "{{ docker.package }}-model-master"
+    port: 8501
+  worker:
+    service_name: "{{ docker.package }}-model-worker"
+    port: 8500
+
+database:
+  mongodb:
+    compose_dir: "{{ remote_install_path }}/database"
+    image: "mongo:6.0.1"
+    service_name: "{{ docker.package }}-mongodb"
+    username: admin
+    password: P4ssW0rD
+    port: 27017
+  mongoexp:
+    compose_dir: "{{ remote_install_path }}/database"
+    image: "mongo-express:1.0.0-alpha"
+    service_name: "{{ docker.package }}-mongoexp"
+    port: 8081
+
+queue:
+  compose_dir: "{{ remote_install_path }}/queue"
+  redis:
+    image: "redis:7.0.4"
+    service_name: "{{ docker.package }}-redis"
+    port: 6379
+
+ipcam:
+  compose_dir: "{{ remote_install_path }}/ipcam"
+  image: "{{ docker.maintainer }}/{{ docker.package }}-ipcam:x86_64-3.0.0"
+  input_width: 1920  # Frame width origin
+  input_height: 1080  # Frame height origin
+  input_fps: 25  # FPS origin
+  output_width: 1280  # Frame width resized
+  output_height: 720  # Frame height resized
+  checkin:
+    service_name: "{{ docker.package }}-ipcam-checkin"
+    port: 3001
+    # url: rtsp://admin:kotora2023@10.20.3.187:554/ch01/0  # IP Camera In
+    url: "CamTruoc_T3.mp4"
+    zone:  # Detection zone
+      - {"gate": 1, "xmin": 25, "ymin": 80, "xmax": 425, "ymax": 700}
+      - {"gate": 2, "xmin": 500, "ymin": 80, "xmax": 900, "ymax": 700}
+      - {"gate": 3, "xmin": 975, "ymin": 80, "xmax": 1250, "ymax": 700}
+    face_minsize: 70  # Minimum face size
+    intruder_score: 0.8  # Check intruder area
+    matched_score: 0.7  # Face distance
+    output_fps: 0.65  # Prediction interval
+    location: zfloor_third  # Floor location
+  checkout:
+    service_name: "{{ docker.package }}-ipcam-checkout"
+    port: 3000
+    # url: rtsp://admin:kotora2023@10.20.3.186:554/ch01/0  # IP Camera Out
+    url: "CamSau_T3.mp4"
+    zone:
+      - {"gate": 3, "xmin": 525, "ymin": 100, "xmax": 850, "ymax": 650}
+    face_minsize: 50
+    intruder_score: 0.8
+    matched_score: 0.7
+    output_fps: 0.65
+    location: zfloor_third
+
+crawler:
+  compose_dir: "{{ remote_install_path }}/crawler"
+  image: "{{ docker.maintainer }}/{{ docker.package }}-crawler:x86_64-3.0.0"
+  service_name: "{{ docker.package }}-crawler"
+  window_time: 300  # 5 mins
+  username: telehouse
+  password: Tiv@2021#$
+  access_key_url: https://telehouse.hypersd.vn:8050/caisd-rest/rest_access
+  cnt_data_url: https://telehouse.hypersd.vn:8050/caisd-rest/cnt
+  cr_data_url: https://telehouse.hypersd.vn:8050/caisd-rest/cr?WC=category='pcat:400491'&size=10000
+  id_file_url: https://telehouse.hypersd.vn:8050/caisd-rest/zlrel_cnt_attmnt
+  mapping_cnt_to_cr_url: https://telehouse.hypersd.vn:8050/caisd-rest/zlrel_cr_cnt/?WC=cr='cr:{id_cr}'
+  image_data_url: https://telehouse.hypersd.vn:8050/caisd-rest/attmnt/{id_file}/file-resource
+
+webcam:
+  compose_dir: "{{ remote_install_path }}/webcam"
+  image: "{{ docker.maintainer }}/{{ docker.package }}-webcam:aarch64-3.0.0"
+  service_name: "{{ docker.package }}-webcam"
+  port: 8443
+  zone: {'xmin': 0, 'ymin': 0, 'xmax': 720, 'ymax': 1280}
+  face_minsize: 80
+  intruder_score: 1.0
+  matched_score: 0.7
+  location: zfloor_fourth
+
+gpio:
+  compose_dir: "{{ remote_install_path }}/gpio"
+  image: "{{ docker.maintainer }}/{{ docker.package }}-gpio:aarch64-3.0.0"
+  service_name: "{{ docker.package }}-gpio"
+  port: 8888
+
+notifier:
+  compose_dir: "{{ remote_install_path }}/notifier"
+  image: "{{ docker.maintainer }}/{{ docker.package }}-notifier:aarch64-3.0.0"
+  service_name: "{{ docker.package }}-notifier"
+  interval_time: 3600
+  telegram:
+    api_token: 6022923090:AAE0fJvV52NjWlgdITuQL13H_oGgtJ5RcGA
+    chat_id: '-926409367'

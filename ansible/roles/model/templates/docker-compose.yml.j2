@@ -1,0 +1,36 @@
+version: "3.2"
+
+services:
+  {{ model.master.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ model.image }}
+    container_name: {{ model.master.service_name }}
+    restart: always
+    network_mode: host
+    volumes:
+      - ./certs:/app/certs
+    runtime: nvidia
+    environment:
+      - BACKEND_API=https://{{ hostvars['backend']['ansible_host'] }}:{{ backend.master.port }}/{{ backend.endpoint }}
+      - API_PORT={{ model.master.port }}
+      - CHECK_LOCATION={{ model.check_location }}
+      - GATE_INTERVAL={{ model.gate_interval }}
+
+  {{ model.worker.service_name }}:
+    extends:
+      file: {{ remote_install_path }}/common.yml
+      service: common
+    image: {{ model.image }} 
+    container_name: {{ model.worker.service_name }}
+    restart: always
+    network_mode: host
+    volumes:
+      - ./certs:/app/certs
+    runtime: nvidia
+    environment:
+      - BACKEND_API=https://{{ hostvars['backend']['ansible_host'] }}:{{ backend.worker.port }}/{{ backend.endpoint }}
+      - API_PORT={{ model.worker.port }}
+      - CHECK_LOCATION={{ model.check_location }}
+      - GATE_INTERVAL={{ model.gate_interval }}

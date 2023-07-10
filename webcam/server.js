@@ -28,7 +28,7 @@ app.use(express.static(__dirname + '/'));
 
 // Define const
 const { CAMERA, MODEL_API, MODEL_API_WORKER, TIMEOUT_API, 
-    STORE_IMAGE, NUM_IMAGE, BACKEND_API, LAST_VERIFY} = require('./constants');
+    STORE_IMAGE, NUM_IMAGE, BACKEND_API, LAST_VERIFY, ACCESS_TOKEN} = require('./constants');
 
 // Creating get request simple route
 app.get('/camera', (req, res)=>{
@@ -147,6 +147,9 @@ app.post("/api/predict", (req, res) => {
         request({
             requestCert: false,
             rejectUnauthorized: false,
+            headers: {
+                Authorization: 'Bearer ' + ACCESS_TOKEN
+            },
             url: model_api,
             method: 'PUT',
             json: {
@@ -159,14 +162,24 @@ app.post("/api/predict", (req, res) => {
                     }],
                     'face_minsize': CAMERA.face_minsize,
                     'intruder_score': CAMERA.intruder_score,
-                    'matched_score': CAMERA.matched_score
+                    'matched_score': CAMERA.matched_score,
+                    'location': CAMERA.location
                 },
             }
         }, function(error, response, body){
             let current_time = new Date().toLocaleString('en-US', { hourCycle: 'h23'})
             if (error == null) {
-                console.log("Time:", current_time, "Gate:", gate_id, "Prediction:", body.response);
-                res.json(body.response);
+                if (response.statusCode == 200) {
+                    console.log("Time:", current_time, "Gate:", gate_id, "Prediction:", body.response);
+                    res.json(body.response);
+                }
+                else if (response.statusCode == 401) {
+                    console.log(body);
+                    res.json([{zfullname: 'No License!'}]);
+                }
+                else {
+                    res.json([]);
+                }
             }
             else {
                 res.json([]);

@@ -1,0 +1,7 @@
+- name: CASDM crawler install
+  hosts: backend
+  become: true
+  tasks:
+    - include_role:
+        name: crawler
+        tasks_from: install

@@ -1,0 +1,7 @@
+- name: CamIP install
+  hosts: backend
+  become: true
+  tasks:
+    - include_role:
+        name: ipcam
+        tasks_from: install
