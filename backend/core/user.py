@@ -123,7 +123,7 @@ def run(api_host='0.0.0.0', api_port=8999, debug_mode=True, train_interval=10, t
                 else:
                     responses = {}
                 connected = True
-            except Exception as e:
+            except ion as e:
                 logger.error('Generate embedding error: {}'.format(str(e)))
                 responses = {}
         else:
