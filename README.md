@@ -80,7 +80,7 @@ Docker Compose version v2.4.1
 
 ### 3.1. Clone code từ github
 ```sh
-git clone https://github.com/hoangph3/face-kyc-api
+git clone https://github.com/danghh/face-kyc-api
 ```
 Truy cập vào thư mục code:
 ```sh
@@ -156,7 +156,7 @@ d. Đối với service `camera`:
 
 ```yaml
   camera:
-    image: hoangph3/facekyc-camera:aarch64-1.0.0
+    image: danghh/facekyc-camera:aarch64-1.0.0
     container_name: facekyc-camera
     network_mode: host
     depends_on:
@@ -201,7 +201,7 @@ Sửa trường `host` thành địa chỉ ip của camera.
 e. Đối với service `indexing`:
 ```yaml
   indexing:
-    image: hoangph3/facekyc-indexing:aarch64-1.0.0
+    image: danghh/facekyc-indexing:aarch64-1.0.0
     container_name: facekyc-indexing
     volumes:
       - ./volumes/indexing:/app/model
@@ -233,7 +233,7 @@ Trong đó:
 f. Đối với service `recognition`:
 ```yaml
   recognition:
-    image: hoangph3/facekyc-recognition:aarch64-1.0.0
+    image: danghh/facekyc-recognition:aarch64-1.0.0
     container_name: facekyc-recognition
     ports:
       - '8501:8501'
